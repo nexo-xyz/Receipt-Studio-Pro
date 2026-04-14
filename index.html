@@ -1174,7 +1174,8 @@
 
                             <!-- URL Panel -->
                             <div id="qrPanelUrl" style="display: none;">
-                                <input id="qrUrl" class="field" type="url" placeholder="https://example.com/qr.png">
+                                <input id="qrUrl" class="field" type="url"
+                                    placeholder="https://example.com/qr.png">
                             </div>
 
                             <div>
@@ -1190,8 +1191,7 @@
                                     style="width: 56px; height: 56px; border-radius: 8px; object-fit: cover; background: #1a1a2e;">
                                 <div style="font-size: 12px; color: var(--text-dim); line-height: 1.6;">
                                     ตัวอย่างรูป<br>
-                                    <span id="qrStatusText" style="color: var(--text-muted);">กรุณากรอก URL
-                                        หรืออัปโหลดรูป</span>
+                                    <span id="qrStatusText" style="color: var(--text-muted);">กรุณากรอก URL หรืออัปโหลดรูป</span>
                                 </div>
                             </div>
                         </div>
@@ -1286,7 +1286,8 @@
                             <div>
                                 <label class="field-label">Apps Script URL <span>*</span></label>
                                 <input id="sheetsWebhookUrl" class="field" type="url"
-                                    placeholder="https://script.google.com/macros/s/.../exec" style="font-size: 11px;">
+                                    placeholder="https://script.google.com/macros/s/.../exec"
+                                    style="font-size: 11px;">
                             </div>
                             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                                 <button onclick="sheetsTestConnection()" class="btn-ghost"
@@ -1300,9 +1301,7 @@
                                     โหลดข้อมูล</button>
                             </div>
                             <div style="display: flex; justify-content: flex-end;">
-                                <button onclick="clearSheetsLog()"
-                                    style="font-size: 10px; color: var(--text-dim); background: none; border: none; cursor: pointer;">ล้าง
-                                    Log</button>
+                                <button onclick="clearSheetsLog()" style="font-size: 10px; color: var(--text-dim); background: none; border: none; cursor: pointer;">ล้าง Log</button>
                             </div>
                             <div id="sheetsLog"
                                 style="display:none; font-size: 11px; padding: 8px 10px; background: rgba(0,0,0,0.2); border-radius: 8px; color: var(--text-muted); line-height: 1.6; max-height: 80px; overflow-y: auto;">
@@ -1672,22 +1671,30 @@
             if (url.startsWith('data:')) {
                 return url;
             }
+            
             const proxies = [
                 `https://corsproxy.io/?${encodeURIComponent(url)}`,
                 `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
             ];
+            
             let lastError = null;
+            
             for (const proxy of proxies) {
                 try {
                     const controller = new AbortController();
                     const timeoutId = setTimeout(() => controller.abort(), 15000);
-                    const res = await fetch(proxy, {
+                    
+                    const res = await fetch(proxy, { 
                         signal: controller.signal,
                         mode: 'cors'
                     });
+                    
                     clearTimeout(timeoutId);
+                    
                     if (!res.ok) continue;
+                    
                     const blob = await res.blob();
+                    
                     return new Promise((resolve, reject) => {
                         const reader = new FileReader();
                         reader.onload = () => resolve(reader.result);
@@ -1699,51 +1706,1196 @@
                     continue;
                 }
             }
+            
             try {
-                await fetch(url, { mode: 'no-cors' });
+                const res = await fetch(url, { mode: 'no-cors' });
                 console.warn('Using direct URL (may have CORS issues in export)');
                 return url;
             } catch (e) {
-                throw lastError || new Error('??????????????????????');
+                throw lastError || new Error('ไม่สามารถโหลดรูปภาพได้');
             }
         }
+
         // ============================================
-        // GOOGLE SHEETS INTEGRATION
+        // RENDERING FUNCTIONS
         // ============================================
-        function getSheetsUrl() {
-            return document.getElementById('sheetsWebhookUrl')?.value?.trim() || '';
+        function renderReceiptPreview() {
+            const company = document.getElementById('companyName')?.value || 'Your Company';
+            const taxId = document.getElementById('taxId')?.value || '';
+            const client = document.getElementById('clientName')?.value || 'Client';
+            const clientEmail = document.getElementById('clientEmail')?.value || '';
+            const invoiceNum = document.getElementById('invoiceNumber')?.value || 'INV-001';
+            const rawDate = document.getElementById('issueDate')?.value;
+            const issueDate = formatDate(rawDate);
+            const notes = document.getElementById('notes')?.value || '';
+
+            let subtotal = 0;
+            items.forEach(i => { subtotal += (Number(i.quantity) || 0) * (Number(i.unitPrice) || 0); });
+            const tax = vatEnabled ? subtotal * 0.07 : 0;
+            const total = subtotal + tax;
+
+            const grad = getActiveGradient();
+            const activeFrom = getActiveFrom();
+            const isPastel = colorMode === 'custom' ? isLightColor(customFrom) : false;
+            const hdrText = isPastel ? '#2d2d3a' : '#fff';
+
+            let rowsHtml = '';
+            items.forEach(item => {
+                const qty = Number(item.quantity) || 0;
+                const price = Number(item.unitPrice) || 0;
+                const amt = qty * price;
+                rowsHtml += `
+            <tr style="border-bottom: 1px solid #f3f4f6;">
+                <td style="padding: 10px 8px; font-size: 13px; color: #374151;">${escapeHtml(item.description)}</td>
+                <td style="padding: 10px 8px; font-size: 13px; text-align: center; color: #6b7280;">${qty}</td>
+                <td style="padding: 10px 8px; font-size: 13px; text-align: right; color: #6b7280;">฿${price.toFixed(2)}</td>
+                <td style="padding: 10px 8px; font-size: 13px; text-align: right; color: #111827; font-weight: 600;">฿${amt.toFixed(2)}</td>
+            </tr>
+        `;
+            });
+
+            const receiptHtml = buildReceiptHTML({
+                company, taxId, client, clientEmail, invoiceNum, issueDate, notes,
+                subtotal, tax, total, rowsHtml, grad, activeFrom, hdrText
+            });
+
+            const captureEl = document.getElementById('receiptCapture');
+            if (captureEl) captureEl.innerHTML = receiptHtml;
         }
-        function saveSheetsUrlToStorage(url) {
-            try {
-                localStorage.setItem('receiptStudio.sheetsUrl', url || '');
-            } catch (e) {
-                console.warn('Failed to save Sheets URL:', e);
+
+        function buildReceiptHTML(data) {
+            const { company, taxId, client, clientEmail, invoiceNum, issueDate, notes,
+                subtotal, tax, total, rowsHtml, grad, activeFrom, hdrText } = data;
+
+            const bankNameValue = document.getElementById('bankName')?.value || '';
+            const bankFirstName = document.getElementById('bankFirstName')?.value || '';
+            const bankLastName = document.getElementById('bankLastName')?.value || '';
+            const bankAccount = document.getElementById('bankAccount')?.value || '';
+
+            return `
+        <div style="font-family: '${currentFont}', sans-serif; background: #fff; border-radius: 20px; overflow: hidden;">
+            <div style="background: ${grad}; padding: 24px 24px 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;">
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        ${logoBase64 ? `
+                            <div style="width: 60px; height: 60px; border-radius: 12px; background: rgba(255,255,255,0.2); overflow: hidden; flex-shrink: 0;">
+                                <img src="${logoBase64}" style="width: 100%; height: 100%; object-fit: contain;" alt="Logo">
+                            </div>
+                        ` : ''}
+                        <div>
+                            <div style="font-size: 22px; font-weight: 800; color: ${hdrText}; letter-spacing: -0.02em;">${escapeHtml(company)}</div>
+                            <div style="font-size: 12px; color: ${isLightColor(activeFrom) ? 'rgba(30,30,50,0.55)' : 'rgba(255,255,255,0.7)'}; margin-top: 4px;">TAX ID: ${escapeHtml(taxId)}</div>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: ${isLightColor(activeFrom) ? 'rgba(30,30,50,0.45)' : 'rgba(255,255,255,0.65)'}; text-transform: uppercase;">Invoice</div>
+                        <div style="font-size: 18px; font-weight: 800; color: ${hdrText};">#${escapeHtml(invoiceNum)}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="padding: 20px 24px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                    <div>
+                        <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: ${activeFrom}; margin-bottom: 6px;">ออกให้กับ</div>
+                        <div style="font-size: 15px; font-weight: 600; color: #111827;">${escapeHtml(client)}</div>
+                        <div style="font-size: 13px; color: #9ca3af; margin-top: 2px;">${escapeHtml(clientEmail)}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 13px; color: #6b7280;"><span style="font-weight: 600; color: #374151;">วันที่ออก:</span> ${issueDate}</div>
+                    </div>
+                </div>
+                
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f9fafb;">
+                            <th style="padding: 10px 8px; font-size: 12px; font-weight: 700; text-align: left; color: #6b7280; letter-spacing: 0.08em; text-transform: uppercase;">รายละเอียด</th>
+                            <th style="padding: 10px 8px; font-size: 12px; font-weight: 700; text-align: center; color: #6b7280; letter-spacing: 0.08em; text-transform: uppercase;">จำนวน</th>
+                            <th style="padding: 10px 8px; font-size: 12px; font-weight: 700; text-align: right; color: #6b7280; letter-spacing: 0.08em; text-transform: uppercase;">ราคา/หน่วย</th>
+                            <th style="padding: 10px 8px; font-size: 12px; font-weight: 700; text-align: right; color: #6b7280; letter-spacing: 0.08em; text-transform: uppercase;">รวม</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml || '<tr><td colspan="4" style="text-align: center; padding: 20px; color: #d1d5db; font-size: 13px;">ยังไม่มีรายการสินค้า</td></tr>'}
+                    </tbody>
+                </table>
+                
+                <div style="border-top: 1.5px solid #e5e7eb; margin-top: 16px; padding-top: 16px; display: flex; justify-content: flex-end;">
+                    <div style="min-width: 200px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 14px; color: #6b7280; padding: 4px 0;">
+                            <span>ยอดรวม</span><span>฿${subtotal.toFixed(2)}</span>
+                        </div>
+                        ${vatEnabled ? `
+                            <div style="display: flex; justify-content: space-between; font-size: 14px; color: #6b7280; padding: 4px 0;">
+                                <span>ภาษีมูลค่าเพิ่ม (7%)</span><span>฿${tax.toFixed(2)}</span>
+                            </div>
+                        ` : ''}
+                        <div style="display: flex; justify-content: space-between; font-size: 16px; font-weight: 800; color: ${activeFrom}; padding: 8px 0 0; border-top: 2px solid ${activeFrom}40; margin-top: 6px;">
+                            <span>ยอดสุทธิ</span><span>฿${total.toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                ${notes ? `
+                    <div style="margin-top: 16px; padding: 12px 14px; background: #f9fafb; border-radius: 12px; border-left: 3px solid ${activeFrom}; font-size: 13px; color: #6b7280; line-height: 1.6;">
+                        <span style="font-weight: 600; color: #374151;">หมายเหตุ: </span>${escapeHtml(notes)}
+                    </div>
+                ` : ''}
+                
+                ${qrEnabled ? buildQRSection(activeFrom, bankNameValue, bankFirstName, bankLastName, bankAccount) : ''}
+                
+                ${contactEnabled ? buildContactSection(activeFrom) : ''}
+                
+                <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 11px; color: #d1d5db; letter-spacing: 0.06em;">✦ Electronic receipt</span>
+                    <span style="font-size: 11px; color: #d1d5db; letter-spacing: 0.06em;">ReceiptForge ⚡</span>
+                </div>
+            </div>
+        </div>
+    `;
+        }
+
+        function buildQRSection(activeFrom, bankNameValue, bankFirstName, bankLastName, bankAccount) {
+            return `
+        <div style="margin-top: 20px; padding-top: 16px; border-top: 1.5px dashed #e5e7eb;">
+            ${(bankNameValue || bankAccount) ? `
+                <div style="margin-bottom: 16px; padding: 14px; background: #f9fafb; border-radius: 12px; border: 1.5px solid #e5e7eb;">
+                    <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: ${activeFrom}; margin-bottom: 10px;">โอนเงินเข้าบัญชี</div>
+                    <div style="display: flex; align-items: center; gap: 14px;">
+                        ${bankNameValue ? `
+                            <div style="width: 48px; height: 48px; border-radius: 12px; background: ${activeFrom}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;">
+                                <span style="font-size: 9px; font-weight: 900; color: #fff;">${escapeHtml(bankNameValue.substring(0, 4))}</span>
+                                <span style="font-size: 8px; font-weight: 500; color: rgba(255,255,255,0.7);">BANK</span>
+                            </div>
+                        ` : ''}
+                        <div style="flex: 1;">
+                            ${bankNameValue ? `<div style="font-size: 14px; font-weight: 700; color: #111827;">${escapeHtml(bankNameValue)}</div>` : ''}
+                            ${bankFirstName || bankLastName ? `<div style="font-size: 12px; color: #6b7280; margin-top: 2px;">${escapeHtml([bankFirstName, bankLastName].filter(Boolean).join(' '))}</div>` : ''}
+                            ${bankAccount ? `
+                                <div style="margin-top: 6px; display: inline-block; font-size: 14px; font-weight: 700; color: #1e293b; letter-spacing: 0.12em; font-family: monospace; background: #e2e8f0; padding: 4px 10px; border-radius: 8px;">
+                                    ${escapeHtml(bankAccount)}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            ` : ''}
+            
+            ${(qrBase64 || qrUrl) ? `
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div style="flex-shrink: 0; padding: 8px; background: #fff; border: 1.5px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                        <img src="${qrBase64 || escapeHtml(qrUrl)}" style="width: 90px; height: 90px; display: block; border-radius: 8px; object-fit: cover;" alt="QR Code">
+                    </div>
+                    <div>
+                        <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: ${activeFrom}; margin-bottom: 6px;">สแกนชำระเงิน</div>
+                        <div style="font-size: 13px; color: #374151; font-weight: 500; line-height: 1.5;">${escapeHtml(qrLabel)}</div>
+                        <div style="font-size: 12px; color: #9ca3af; margin-top: 4px;">สแกน QR Code ด้วยกล้องมือถือ</div>
+                    </div>
+                </div>
+            ` : ''}
+        </div>
+    `;
+        }
+
+        function buildContactSection(activeFrom) {
+            const activeContacts = Object.entries(contactData)
+                .filter(([_, data]) => data.enabled && data.value)
+                .map(([key, data]) => ({ key, value: data.value, ...SOCIAL_PLATFORMS[key] }));
+
+            if (!activeContacts.length) return '';
+
+            const chips = activeContacts.map(c => `
+        <div class="contact-chip" title="${escapeHtml(c.name)}: ${escapeHtml(c.value)}">
+            <div class="contact-chip-icon" style="background: ${c.color};">
+                ${getIconSVG(c.icon)}
+            </div>
+            <span class="contact-chip-text">${escapeHtml(c.value)}</span>
+        </div>
+    `).join('');
+
+            return `
+        <div style="margin-top: 20px; padding-top: 16px; border-top: 1.5px solid #f3f4f6;">
+            <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: ${activeFrom}; margin-bottom: 12px;">ช่องทางติดต่อ</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">${chips}</div>
+        </div>
+    `;
+        }
+
+        function renderItemInputs() {
+            const container = document.getElementById('itemsContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            items.forEach((item, idx) => {
+                const row = document.createElement('div');
+                row.className = 'item-row';
+                row.dataset.index = idx;
+
+                row.innerHTML = `
+            <input class="field item-desc" type="text" value="${escapeHtml(item.description)}" placeholder="รายละเอียด">
+            <input class="field item-qty" type="number" step="1" min="0" value="${item.quantity}" style="text-align: center;">
+            <div class="price-wrapper">
+                <span class="currency">฿</span>
+                <input class="field item-price" type="number" step="0.01" min="0" value="${item.unitPrice.toFixed(2)}" style="text-align: right;">
+            </div>
+            <button class="remove-btn">✕</button>
+        `;
+
+                container.appendChild(row);
+            });
+
+            attachItemEvents();
+        }
+
+        function attachItemEvents() {
+            document.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = parseInt(e.currentTarget.closest('[data-index]').dataset.index);
+                    if (!isNaN(idx)) {
+                        items.splice(idx, 1);
+                        renderAll();
+                    }
+                });
+            });
+
+            document.querySelectorAll('.item-desc, .item-qty, .item-price').forEach(inp => {
+                inp.addEventListener('input', (e) => {
+                    const div = e.target.closest('[data-index]');
+                    if (!div) return;
+                    const idx = parseInt(div.dataset.index);
+                    if (isNaN(idx) || idx >= items.length) return;
+
+                    const d = div.querySelector('.item-desc');
+                    const q = div.querySelector('.item-qty');
+                    const p = div.querySelector('.item-price');
+
+                    if (d) items[idx].description = d.value;
+                    if (q) items[idx].quantity = parseFloat(q.value) || 0;
+                    if (p) items[idx].unitPrice = parseFloat(p.value) || 0;
+
+                    renderReceiptPreview();
+                });
+            });
+        }
+
+        function renderAll() {
+            renderReceiptPreview();
+            renderItemInputs();
+        }
+
+        // ============================================
+        // TOGGLE FUNCTIONS
+        // ============================================
+        function updateToggleUI(type, enabled) {
+            const track = document.getElementById(`${type}Toggle`);
+            const thumb = document.getElementById(`${type}Thumb`);
+            const label = document.getElementById(`${type}ToggleLabel`);
+
+            if (!track || !thumb || !label) return;
+
+            if (type === 'vat') {
+                track.style.background = enabled ? 'rgba(0,180,150,0.7)' : 'rgba(255,255,255,0.12)';
+                label.style.color = enabled ? 'rgba(0,180,150,0.9)' : 'var(--text-dim)';
+            } else if (type === 'qr') {
+                track.style.background = enabled ? 'rgba(99,102,241,0.7)' : 'rgba(255,255,255,0.12)';
+                label.style.color = enabled ? 'rgba(129,140,248,0.9)' : 'var(--text-dim)';
+            } else if (type === 'contact') {
+                track.style.background = enabled ? 'rgba(236,72,153,0.65)' : 'rgba(255,255,255,0.12)';
+                label.style.color = enabled ? 'rgba(236,72,153,0.9)' : 'var(--text-dim)';
+            }
+
+            thumb.style.left = enabled ? '23px' : '3px';
+            label.textContent = enabled ? 'เปิด' : 'ปิด';
+        }
+
+        function toggleVat() {
+            vatEnabled = !vatEnabled;
+            updateToggleUI('vat', vatEnabled);
+            renderReceiptPreview();
+        }
+
+        function toggleQr() {
+            qrEnabled = !qrEnabled;
+            updateToggleUI('qr', qrEnabled);
+            const qrFields = document.getElementById('qrFields');
+            if (qrFields) qrFields.style.display = qrEnabled ? 'flex' : 'none';
+            renderReceiptPreview();
+        }
+
+        function toggleContact() {
+            contactEnabled = !contactEnabled;
+            updateToggleUI('contact', contactEnabled);
+            const contactFields = document.getElementById('contactFields');
+            const contactPreview = document.getElementById('contactPreviewSection');
+            if (contactFields) contactFields.style.display = contactEnabled ? 'flex' : 'none';
+            if (contactPreview) contactPreview.style.display = contactEnabled ? 'block' : 'none';
+            renderReceiptPreview();
+        }
+
+        // ============================================
+        // CONTACT FUNCTIONS
+        // ============================================
+        function updateContactUI() {
+            const activeCount = Object.values(contactData).filter(d => d.enabled && d.value).length;
+            const countEl = document.getElementById('contactActiveCount');
+            if (countEl) countEl.textContent = activeCount;
+
+            const previewContainer = document.getElementById('contactMiniPreview');
+            if (previewContainer) {
+                let chips = '';
+                Object.entries(contactData).forEach(([key, data]) => {
+                    if (data.enabled && data.value) {
+                        const platform = SOCIAL_PLATFORMS[key];
+                        if (!platform) return;
+                        chips += `
+                    <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 6px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;">
+                        <div style="width: 20px; height: 20px; border-radius: 50%; background: ${platform.color}; display: flex; align-items: center; justify-content: center;">
+                            ${getIconSVG(platform.icon)}
+                        </div>
+                        <span style="font-size: 11px; color: var(--text-muted);">${escapeHtml(data.value.substring(0, 15))}${data.value.length > 15 ? '...' : ''}</span>
+                    </div>
+                `;
+                    }
+                });
+                previewContainer.innerHTML = chips || '<span style="font-size: 11px; color: var(--text-dim);">ยังไม่มีช่องทางที่เปิดใช้งาน</span>';
             }
         }
-        function loadSheetsUrlFromStorage() {
+
+        function initContactFields() {
+            const container = document.getElementById('contactFields');
+            if (!container) return;
+            container.innerHTML = '';
+
+            Object.entries(SOCIAL_PLATFORMS).forEach(([key, platform]) => {
+                const data = contactData[key] || { enabled: false, value: '' };
+                const isEnabled = data.enabled;
+                const value = data.value || '';
+
+                const row = document.createElement('div');
+                row.className = 'contact-field-row';
+                row.innerHTML = `
+            <div class="contact-checkbox-wrapper">
+                <input type="checkbox" 
+                       class="contact-checkbox" 
+                       id="chk_${key}" 
+                       data-key="${key}"
+                       ${isEnabled ? 'checked' : ''}>
+            </div>
+            <div class="contact-input-wrapper">
+                <div class="contact-icon-preview" style="background: ${platform.color};">
+                    ${getIconSVG(platform.icon)}
+                </div>
+                <input type="text" 
+                       class="contact-input" 
+                       id="val_${key}" 
+                       data-key="${key}"
+                       placeholder="${platform.placeholder}"
+                       value="${escapeHtml(value)}"
+                       ${!isEnabled ? 'disabled' : ''}>
+            </div>
+        `;
+
+                container.appendChild(row);
+
+                const chk = row.querySelector(`#chk_${key}`);
+                const val = row.querySelector(`#val_${key}`);
+
+                chk.addEventListener('change', (e) => {
+                    if (!contactData[key]) contactData[key] = { enabled: false, value: '' };
+                    contactData[key].enabled = e.target.checked;
+                    val.disabled = !e.target.checked;
+                    if (e.target.checked && !val.value) {
+                        val.focus();
+                    }
+                    updateContactUI();
+                    renderReceiptPreview();
+                });
+
+                val.addEventListener('input', (e) => {
+                    if (!contactData[key]) contactData[key] = { enabled: false, value: '' };
+                    contactData[key].value = e.target.value;
+                    updateContactUI();
+                    renderReceiptPreview();
+                });
+            });
+
+            updateContactUI();
+        }
+
+        function quickFillContacts() {
+            const demoData = {
+                facebook: { enabled: true, value: 'nebulasoft.studio' },
+                instagram: { enabled: true, value: '@nebulasoft.studio' },
+                tiktok: { enabled: true, value: '@nebulasoft' },
+                line: { enabled: true, value: '@nebulasoft' },
+                phone: { enabled: true, value: '02-123-4567' },
+                email: { enabled: true, value: 'hello@nebulasoft.com' },
+                website: { enabled: true, value: 'www.nebulasoft.com' },
+                youtube: { enabled: true, value: '@NebulaSoftStudio' },
+                shopee: { enabled: false, value: '' },
+                lazada: { enabled: false, value: '' }
+            };
+
+            Object.entries(demoData).forEach(([key, data]) => {
+                contactData[key] = { ...data };
+
+                const chk = document.getElementById(`chk_${key}`);
+                const val = document.getElementById(`val_${key}`);
+                if (chk) chk.checked = data.enabled;
+                if (val) {
+                    val.value = data.value;
+                    val.disabled = !data.enabled;
+                }
+            });
+
+            if (!contactEnabled) {
+                toggleContact();
+            }
+
+            updateContactUI();
+            renderReceiptPreview();
+            showToast('เติมข้อมูลตัวอย่างเรียบร้อยแล้ว', 'success');
+        }
+
+        // ============================================
+        // COLOR & FONT FUNCTIONS
+        // ============================================
+        function initColorSwatches() {
+            const row = document.getElementById('swatchRow');
+            if (!row) return;
+            row.innerHTML = '';
+            Object.entries(ACCENTS).forEach(([key, value]) => {
+                const swatch = document.createElement('div');
+                swatch.className = `swatch ${key === 'orange' ? 'active' : ''}`;
+                swatch.dataset.accent = key;
+                swatch.style.background = `linear-gradient(135deg, ${value.fromHex}, ${value.toHex})`;
+                swatch.title = key.charAt(0).toUpperCase() + key.slice(1);
+                swatch.onclick = () => applyAccent(key);
+                row.appendChild(swatch);
+            });
+        }
+
+        function initFontPicker() {
+            const row = document.getElementById('fontPickerRow');
+            if (!row) return;
+            row.innerHTML = '';
+            FONTS.forEach(font => {
+                const pill = document.createElement('button');
+                pill.className = `font-pill ${font === currentFont ? 'active' : ''}`;
+                pill.dataset.font = font;
+                pill.style.fontFamily = font;
+                pill.textContent = font;
+                pill.onclick = () => applyFont(font);
+                row.appendChild(pill);
+            });
+        }
+
+        function applyAccent(key) {
+            currentAccent = ACCENTS[key] || ACCENTS.orange;
+            document.documentElement.style.setProperty('--accent-h', currentAccent.h);
+            document.documentElement.style.setProperty('--accent', currentAccent.fromHex);
+            document.documentElement.style.setProperty('--accent-glow', currentAccent.fromHex);
+
+            document.querySelectorAll('.swatch').forEach(s => {
+                s.classList.toggle('active', s.dataset.accent === key);
+            });
+
+            renderReceiptPreview();
+        }
+
+        function applyFont(font) {
+            currentFont = font;
+            document.body.style.fontFamily = `'${font}', sans-serif`;
+
+            document.querySelectorAll('.font-pill').forEach(p => {
+                p.classList.toggle('active', p.dataset.font === font);
+            });
+
+            renderReceiptPreview();
+        }
+
+        function switchColorTab(tab) {
+            colorMode = tab;
+            const presetBtn = document.getElementById('colorTabPreset');
+            const customBtn = document.getElementById('colorTabCustom');
+            const presetPanel = document.getElementById('colorPanelPreset');
+            const customPanel = document.getElementById('colorPanelCustom');
+
+            if (!presetBtn || !customBtn || !presetPanel || !customPanel) return;
+
+            const activeAccent = currentAccent || ACCENTS.orange;
+            const activeHue = activeAccent.h;
+
+            const activeStyle = `border: 1.5px solid hsl(${activeHue}, 60%, 50%); background: rgba(255,140,60,0.12); color: hsl(${activeHue}, 80%, 70%);`;
+            const inactiveStyle = 'border: 1.5px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); color: var(--text-dim);';
+
+            if (tab === 'preset') {
+                presetPanel.style.display = 'block';
+                customPanel.style.display = 'none';
+                presetBtn.style.cssText = activeStyle;
+                customBtn.style.cssText = inactiveStyle;
+            } else {
+                presetPanel.style.display = 'none';
+                customPanel.style.display = 'block';
+                customBtn.style.cssText = activeStyle;
+                presetBtn.style.cssText = inactiveStyle;
+                applyCustomColor();
+            }
+
+            renderReceiptPreview();
+        }
+
+        function applyCustomColor() {
+            const fromPicker = document.getElementById('customColorFrom');
+            const toPicker = document.getElementById('customColorTo');
+            const fromHex = document.getElementById('customColorFromHex');
+            const toHex = document.getElementById('customColorToHex');
+            const preview = document.getElementById('customGradPreview');
+
+            if (!fromPicker || !toPicker) return;
+
+            customFrom = fromPicker.value;
+            customTo = toPicker.value;
+            if (fromHex) fromHex.value = customFrom;
+            if (toHex) toHex.value = customTo;
+
+            if (preview) preview.style.background = `linear-gradient(135deg, ${customFrom}, ${customTo})`;
+
+            const hue = hexToHue(customFrom);
+            document.documentElement.style.setProperty('--accent-h', hue);
+            document.documentElement.style.setProperty('--accent', customFrom);
+            document.documentElement.style.setProperty('--accent-glow', customFrom);
+
+            renderReceiptPreview();
+        }
+
+        function syncCustomHex(which) {
+            const hexInput = document.getElementById(`customColor${which === 'from' ? 'From' : 'To'}Hex`);
+            const picker = document.getElementById(`customColor${which === 'from' ? 'From' : 'To'}`);
+            if (!hexInput || !picker) return;
+
+            const value = hexInput.value.trim();
+
+            if (/^#[0-9A-F]{6}$/i.test(value)) {
+                picker.value = value;
+                applyCustomColor();
+            }
+        }
+
+        // ============================================
+        // LOGO FUNCTIONS
+        // ============================================
+        function switchLogoTab(tab) {
+            const uploadPanel = document.getElementById('logoPanelUpload');
+            const urlPanel = document.getElementById('logoPanelUrl');
+            const uploadTab = document.getElementById('logoTabUpload');
+            const urlTab = document.getElementById('logoTabUrl');
+
+            if (!uploadPanel || !urlPanel || !uploadTab || !urlTab) return;
+
+            const activeStyle = 'border: 1.5px solid rgba(255,140,60,0.45); background: rgba(255,140,60,0.12); color: rgba(255,180,80,0.95);';
+            const inactiveStyle = 'border: 1.5px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); color: var(--text-dim);';
+
+            if (tab === 'upload') {
+                uploadPanel.style.display = 'block';
+                urlPanel.style.display = 'none';
+                uploadTab.style.cssText = activeStyle;
+                urlTab.style.cssText = inactiveStyle;
+            } else {
+                uploadPanel.style.display = 'none';
+                urlPanel.style.display = 'block';
+                urlTab.style.cssText = activeStyle;
+                uploadTab.style.cssText = inactiveStyle;
+            }
+        }
+
+        function applyLogo(b64, statusMsg) {
+            logoBase64 = b64;
+
+            const img = document.getElementById('logoPreviewImg');
+            const icon = document.getElementById('logoPlaceholderIcon');
+            const wrap = document.getElementById('logoPreviewWrap');
+            const removeBtn = document.getElementById('logoRemoveBtn');
+            const statusEl = document.getElementById('logoStatusText');
+
+            if (img) { img.src = b64; img.style.display = 'block'; }
+            if (icon) icon.style.display = 'none';
+            if (wrap) { wrap.style.border = '2px solid rgba(255,140,60,0.3)'; wrap.style.background = 'rgba(255,255,255,0.06)'; }
+            if (removeBtn) removeBtn.style.display = 'block';
+            if (statusEl) statusEl.textContent = statusMsg || '✓ โลโก้พร้อมใช้งาน';
+
+            renderReceiptPreview();
+        }
+
+        function removeLogo() {
+            logoBase64 = '';
+
+            const img = document.getElementById('logoPreviewImg');
+            const icon = document.getElementById('logoPlaceholderIcon');
+            const wrap = document.getElementById('logoPreviewWrap');
+            const removeBtn = document.getElementById('logoRemoveBtn');
+            const statusEl = document.getElementById('logoStatusText');
+
+            if (img) { img.src = ''; img.style.display = 'none'; }
+            if (icon) icon.style.display = 'block';
+            if (wrap) { wrap.style.border = '2px dashed rgba(255,140,60,0.3)'; wrap.style.background = 'rgba(255,255,255,0.06)'; }
+            if (removeBtn) removeBtn.style.display = 'none';
+            if (statusEl) statusEl.textContent = 'ยังไม่มีโลโก้';
+
+            const fileInput = document.getElementById('logoFileInput');
+            const urlInput = document.getElementById('logoUrlInput');
+            const urlStatus = document.getElementById('logoUrlStatus');
+            if (fileInput) fileInput.value = '';
+            if (urlInput) urlInput.value = '';
+            if (urlStatus) urlStatus.textContent = '';
+
+            renderReceiptPreview();
+        }
+
+        function loadFileAsBase64(file) {
+            return new Promise((resolve, reject) => {
+                if (!file.type.startsWith('image/')) { reject('not image'); return; }
+                if (file.size > 5 * 1024 * 1024) { reject('too large'); return; }
+
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function loadLogoFromUrl() {
+            const urlInput = document.getElementById('logoUrlInput');
+            const statusEl = document.getElementById('logoUrlStatus');
+            const url = urlInput?.value.trim();
+
+            if (!url) {
+                showToast('กรุณากรอก URL ของรูปภาพ', 'warning');
+                return;
+            }
+
+            if (statusEl) {
+                statusEl.textContent = '⏳ กำลังโหลด…';
+                statusEl.style.color = 'var(--text-dim)';
+            }
+
             try {
-                const saved = localStorage.getItem('receiptStudio.sheetsUrl') || '';
-                const input = document.getElementById('sheetsWebhookUrl');
-                if (input && saved && !input.value) {
-                    input.value = saved;
+                const b64 = await fetchImageAsBase64(url);
+                if (b64 && b64.startsWith('data:image')) {
+                    applyLogo(b64, '✓ โหลดสำเร็จ');
+                    if (statusEl) {
+                        statusEl.textContent = '✓ โหลดสำเร็จ พร้อม Export';
+                        statusEl.style.color = 'rgba(34,197,94,0.9)';
+                    }
+                } else {
+                    throw new Error('Invalid image data');
+                }
+            } catch (err) {
+                console.warn('Logo load error:', err);
+                if (statusEl) {
+                    statusEl.textContent = '⚠ ไม่สามารถโหลดได้ (อาจติด CORS)';
+                    statusEl.style.color = 'rgba(251,191,36,0.9)';
+                }
+                applyLogo(url, '⚠ ใช้ URL โดยตรง (export อาจไม่มีรูป)');
+            }
+        }
+
+        function initLogoUpload() {
+            const fileInput = document.getElementById('logoFileInput');
+            const dropZone = document.getElementById('logoDropZone');
+
+            if (!dropZone || !fileInput) return;
+
+            dropZone.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                try {
+                    const b64 = await loadFileAsBase64(file);
+                    applyLogo(b64, `✓ ${file.name}`);
+                } catch (err) {
+                    showToast(err === 'too large' ? 'ไฟล์ใหญ่เกิน 5MB' : 'ไม่รองรับไฟล์นี้', 'error');
+                }
+            });
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = 'rgba(255,140,60,0.8)';
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.style.borderColor = 'rgba(255,140,60,0.25)';
+            });
+
+            dropZone.addEventListener('drop', async (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = 'rgba(255,140,60,0.25)';
+                const file = e.dataTransfer.files[0];
+                if (!file) return;
+                try {
+                    const b64 = await loadFileAsBase64(file);
+                    applyLogo(b64, `✓ ${file.name}`);
+                } catch (err) {
+                    showToast(err === 'too large' ? 'ไฟล์ใหญ่เกิน 5MB' : 'ไม่รองรับไฟล์นี้', 'error');
+                }
+            });
+
+            const urlInput = document.getElementById('logoUrlInput');
+            if (urlInput) {
+                urlInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') loadLogoFromUrl();
+                });
+            }
+        }
+
+        // ============================================
+        // QR FUNCTIONS
+        // ============================================
+        function switchQrTab(tab) {
+            const uploadPanel = document.getElementById('qrPanelUpload');
+            const urlPanel = document.getElementById('qrPanelUrl');
+            const uploadTab = document.getElementById('qrTabUpload');
+            const urlTab = document.getElementById('qrTabUrl');
+
+            if (!uploadPanel || !urlPanel || !uploadTab || !urlTab) return;
+
+            const activeStyle = 'border: 1.5px solid rgba(129,140,248,0.5); background: rgba(99,102,241,0.18); color: #a5b4fc;';
+            const inactiveStyle = 'border: 1.5px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); color: var(--text-dim);';
+
+            if (tab === 'upload') {
+                uploadPanel.style.display = 'block';
+                urlPanel.style.display = 'none';
+                uploadTab.style.cssText = activeStyle;
+                urlTab.style.cssText = inactiveStyle;
+            } else {
+                uploadPanel.style.display = 'none';
+                urlPanel.style.display = 'block';
+                urlTab.style.cssText = activeStyle;
+                uploadTab.style.cssText = inactiveStyle;
+            }
+        }
+
+        function applyQrBase64(b64, filename) {
+            qrBase64 = b64;
+            qrUrl = filename || 'uploaded-image';
+
+            const img = document.getElementById('qrPreviewImg');
+            const st = document.getElementById('qrStatusText');
+
+            if (img) { img.src = b64; img.style.opacity = '1'; }
+            if (st) st.textContent = '✓ โหลดสำเร็จ พร้อม Export';
+
+            renderReceiptPreview();
+        }
+
+        async function onQrUrlChange() {
+            const urlInput = document.getElementById('qrUrl');
+            if (!urlInput) return;
+
+            qrUrl = urlInput.value.trim();
+            qrBase64 = '';
+
+            const previewImg = document.getElementById('qrPreviewImg');
+            const statusEl = document.getElementById('qrStatusText');
+
+            if (!qrUrl) {
+                if (previewImg) previewImg.src = '';
+                if (statusEl) statusEl.textContent = 'กรุณากรอก URL หรืออัปโหลดรูป';
+                renderReceiptPreview();
+                return;
+            }
+
+            if (previewImg) { 
+                previewImg.style.opacity = '0.35'; 
+                previewImg.src = qrUrl; 
+            }
+            if (statusEl) statusEl.textContent = '⏳ กำลังโหลด…';
+
+            try {
+                const b64 = await fetchImageAsBase64(qrUrl);
+                if (b64 && b64.startsWith('data:image')) {
+                    qrBase64 = b64;
+                    if (previewImg) { previewImg.src = b64; previewImg.style.opacity = '1'; }
+                    if (statusEl) statusEl.textContent = '✓ โหลดสำเร็จ พร้อม Export';
+                } else {
+                    throw new Error('Invalid image data');
                 }
             } catch (e) {
-                console.warn('Failed to load Sheets URL:', e);
+                console.warn('QR load error:', e);
+                qrBase64 = '';
+                if (previewImg) { previewImg.src = qrUrl; previewImg.style.opacity = '0.7'; }
+                if (statusEl) statusEl.textContent = '⚠ ไม่สามารถโหลดได้ (ใช้ URL โดยตรง)';
+            }
+
+            renderReceiptPreview();
+        }
+
+        async function generateQRCode() {
+            const textInput = document.getElementById('qrTextInput');
+            if (!textInput) return;
+
+            const text = textInput.value.trim();
+            if (!text) {
+                showToast('กรุณากรอกข้อความสำหรับ QR Code', 'warning');
+                return;
+            }
+
+            try {
+                const canvas = document.createElement('canvas');
+                await QRCode.toCanvas(canvas, text, { width: 300 });
+                const b64 = canvas.toDataURL('image/png');
+                applyQrBase64(b64, 'generated-qr.png');
+                showToast('สร้าง QR Code สำเร็จ', 'success');
+            } catch (err) {
+                showToast('ไม่สามารถสร้าง QR Code ได้', 'error');
             }
         }
+
+        function initQrUpload() {
+            const fileInput = document.getElementById('qrFileInput');
+            const dropZone = document.getElementById('qrDropZone');
+
+            if (!dropZone || !fileInput) return;
+
+            dropZone.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                try {
+                    const b64 = await loadFileAsBase64(file);
+                    applyQrBase64(b64, file.name);
+                } catch (err) {
+                    showToast(err === 'too large' ? 'ไฟล์ใหญ่เกิน 5MB' : 'ไม่รองรับไฟล์นี้', 'error');
+                }
+            });
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = 'rgba(129,140,248,0.7)';
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.style.borderColor = 'rgba(129,140,248,0.3)';
+            });
+
+            dropZone.addEventListener('drop', async (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = 'rgba(129,140,248,0.3)';
+                const file = e.dataTransfer.files[0];
+                if (!file) return;
+                try {
+                    const b64 = await loadFileAsBase64(file);
+                    applyQrBase64(b64, file.name);
+                } catch (err) {
+                    showToast(err === 'too large' ? 'ไฟล์ใหญ่เกิน 5MB' : 'ไม่รองรับไฟล์นี้', 'error');
+                }
+            });
+        }
+
+        // ============================================
+        // ACTIONS
+        // ============================================
+        function addItem() {
+            items.push({ description: 'รายการใหม่', quantity: 1, unitPrice: 0 });
+            renderAll();
+        }
+
+        function resetToDefault() {
+            items = [
+                { description: 'SaaS Pro Plan — Annual Subscription', quantity: 1, unitPrice: 299.00 },
+                { description: 'UI/UX Audit & Consultation', quantity: 2, unitPrice: 85.00 }
+            ];
+
+            const companyName = document.getElementById('companyName');
+            const taxId = document.getElementById('taxId');
+            const clientName = document.getElementById('clientName');
+            const clientEmail = document.getElementById('clientEmail');
+            const invoiceNumber = document.getElementById('invoiceNumber');
+            const issueDate = document.getElementById('issueDate');
+            const notes = document.getElementById('notes');
+
+            if (companyName) companyName.value = 'NebulaSoft Studio';
+            if (taxId) taxId.value = '1234567890123';
+            if (clientName) clientName.value = 'Orion Digital Ltd.';
+            if (clientEmail) clientEmail.value = 'hello@oriondigital.com';
+            generateOrderNumber();
+            if (issueDate) issueDate.value = new Date().toISOString().slice(0, 10);
+            if (notes) notes.value = 'ขอบคุณที่เลือกใช้บริการ NebulaSoft กรุณาชำระภายใน 15 วัน';
+
+            vatEnabled = true;
+            updateToggleUI('vat', true);
+
+            qrEnabled = false;
+            updateToggleUI('qr', false);
+            const qrFields = document.getElementById('qrFields');
+            if (qrFields) qrFields.style.display = 'none';
+
+            const bankName = document.getElementById('bankName');
+            const bankFirstName = document.getElementById('bankFirstName');
+            const bankLastName = document.getElementById('bankLastName');
+            const bankAccount = document.getElementById('bankAccount');
+            if (bankName) bankName.value = '';
+            if (bankFirstName) bankFirstName.value = '';
+            if (bankLastName) bankLastName.value = '';
+            if (bankAccount) bankAccount.value = '';
+
+            qrUrl = '';
+            qrBase64 = '';
+            qrLabel = 'สแกนเพื่อชำระเงิน';
+            const qrUrlInput = document.getElementById('qrUrl');
+            const qrLabelInput = document.getElementById('qrLabel');
+            const qrPreviewImg = document.getElementById('qrPreviewImg');
+            const qrStatusText = document.getElementById('qrStatusText');
+            if (qrUrlInput) qrUrlInput.value = '';
+            if (qrLabelInput) qrLabelInput.value = 'สแกนเพื่อชำระเงิน';
+            if (qrPreviewImg) qrPreviewImg.src = '';
+            if (qrStatusText) qrStatusText.textContent = 'กรุณากรอก URL หรืออัปโหลดรูป';
+
+            contactData = {
+                facebook: { enabled: true, value: 'nebulasoft.studio' },
+                instagram: { enabled: true, value: '@nebulasoft.studio' },
+                tiktok: { enabled: true, value: '@nebulasoft' },
+                line: { enabled: false, value: '' },
+                phone: { enabled: false, value: '' },
+                email: { enabled: false, value: '' },
+                website: { enabled: false, value: '' },
+                youtube: { enabled: false, value: '' },
+                shopee: { enabled: false, value: '' },
+                lazada: { enabled: false, value: '' }
+            };
+
+            contactEnabled = false;
+            updateToggleUI('contact', false);
+            const contactFields = document.getElementById('contactFields');
+            const contactPreview = document.getElementById('contactPreviewSection');
+            if (contactFields) contactFields.style.display = 'none';
+            if (contactPreview) contactPreview.style.display = 'none';
+
+            initContactFields();
+
+            applyAccent('orange');
+            applyFont('Sarabun');
+            removeLogo();
+
+            renderAll();
+            showToast('รีเซ็ตข้อมูลเรียบร้อย', 'success');
+        }
+
+        // ============================================
+        // PNG DOWNLOAD
+        // ============================================
+        async function downloadPNG() {
+            const btn = document.getElementById('downloadPNGBtn');
+            if (!btn) return;
+
+            const originalText = btn.innerHTML;
+
+            btn.innerHTML = '<div class="spinner"></div> กำลังสร้าง…';
+            btn.disabled = true;
+
+            try {
+                const el = document.getElementById('receiptCapture');
+                if (!el) throw new Error('ไม่พบองค์ประกอบใบเสร็จ');
+
+                const canvas = await html2canvas(el, {
+                    scale: 3,
+                    backgroundColor: '#ffffff',
+                    logging: false,
+                    useCORS: true,
+                    allowTaint: false
+                });
+
+                const link = document.createElement('a');
+                const invoiceNum = document.getElementById('invoiceNumber');
+                const num = (invoiceNum?.value || 'receipt').replace(/[^a-z0-9]/gi, '_');
+                link.download = `receipt_${num}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+
+                launchConfetti();
+                showToast('🎉 ดาวน์โหลด PNG สำเร็จ!', 'success');
+            } catch (err) {
+                console.error('Download error:', err);
+                showToast('❌ ไม่สามารถสร้างไฟล์ PNG ได้', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        function launchConfetti() {
+            const canvas = document.getElementById('confettiCanvas');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+
+            if (confettiAnimationFrame) {
+                cancelAnimationFrame(confettiAnimationFrame);
+                confettiAnimationFrame = null;
+            }
+
+            canvas.style.display = 'block';
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const pieces = Array.from({ length: 100 }, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height * -0.5 - 20,
+                size: Math.random() * 8 + 4,
+                color: `hsl(${Math.random() * 360}, 85%, 60%)`,
+                vx: Math.random() * 4 - 2,
+                vy: Math.random() * 4 + 3,
+                rotation: Math.random() * 360,
+                rotationSpeed: Math.random() * 10 - 5
+            }));
+
+            const start = performance.now();
+            const DURATION = 3000;
+
+            function animate(now) {
+                const elapsed = now - start;
+                const progress = Math.min(elapsed / DURATION, 1);
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.globalAlpha = 1 - progress * 0.7;
+
+                pieces.forEach(p => {
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.rotation * Math.PI / 180);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                    ctx.restore();
+
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.15;
+                    p.rotation += p.rotationSpeed;
+                });
+
+                if (elapsed < DURATION) {
+                    confettiAnimationFrame = requestAnimationFrame(animate);
+                } else {
+                    canvas.style.display = 'none';
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    confettiAnimationFrame = null;
+                }
+            }
+
+            confettiAnimationFrame = requestAnimationFrame(animate);
+        }
+
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+        function setupEventListeners() {
+            ['companyName', 'taxId', 'clientName', 'clientEmail', 'invoiceNumber', 'issueDate', 'notes'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', renderReceiptPreview);
+                    el.addEventListener('change', renderReceiptPreview);
+                }
+            });
+
+            ['bankName', 'bankFirstName', 'bankLastName', 'bankAccount'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', renderReceiptPreview);
+                    el.addEventListener('change', renderReceiptPreview);
+                }
+            });
+
+            const qrUrlInput = document.getElementById('qrUrl');
+            if (qrUrlInput) qrUrlInput.addEventListener('input', onQrUrlChange);
+
+            const qrLabelInput = document.getElementById('qrLabel');
+            if (qrLabelInput) {
+                qrLabelInput.addEventListener('input', () => {
+                    qrLabel = qrLabelInput.value;
+                    renderReceiptPreview();
+                });
+            }
+
+            const customFrom = document.getElementById('customColorFrom');
+            const customTo = document.getElementById('customColorTo');
+            if (customFrom) customFrom.addEventListener('input', applyCustomColor);
+            if (customTo) customTo.addEventListener('input', applyCustomColor);
+
+            const customFromHex = document.getElementById('customColorFromHex');
+            const customToHex = document.getElementById('customColorToHex');
+            if (customFromHex) customFromHex.addEventListener('input', () => syncCustomHex('from'));
+            if (customToHex) customToHex.addEventListener('input', () => syncCustomHex('to'));
+
+            const addItemBtn = document.getElementById('addItemBtn');
+            if (addItemBtn) addItemBtn.addEventListener('click', addItem);
+
+            const resetBtn = document.getElementById('resetDemoBtn');
+            if (resetBtn) resetBtn.addEventListener('click', resetToDefault);
+
+            const downloadBtn = document.getElementById('downloadPNGBtn');
+            if (downloadBtn) downloadBtn.addEventListener('click', downloadPNG);
+        }
+
+        // ============================================
+        // ORDER NUMBER GENERATOR
+        // ============================================
+        function generateOrderNumber() {
+            const timestamp = Date.now().toString().slice(-6);
+            const rand = Math.floor(100000 + Math.random() * 900000);
+            const candidate = 'ORD-' + timestamp + rand;
+
+            const el = document.getElementById('invoiceNumber');
+            if (el) el.value = candidate;
+
+            const statusEl = document.getElementById('ordStatus');
+            if (statusEl) statusEl.textContent = `✓ สร้างเลขใหม่เรียบร้อย`;
+
+            renderReceiptPreview();
+            return candidate;
+        }
+
+        // ============================================
+        // GOOGLE SHEETS INTEGRATION (แก้ไขใหม่ - ใช้ no-cors)
+        // ============================================
+        function getSheetsUrl() {
+            const input = document.getElementById('sheetsWebhookUrl');
+            if (!input) return '';
+            return input.value.trim();
+        }
+
+        function saveSheetsUrlToStorage(url) {
+            try {
+                localStorage.setItem('receiptforge_sheets_url', url);
+            } catch (e) {}
+        }
+
+        function loadSheetsUrlFromStorage() {
+            try {
+                const saved = localStorage.getItem('receiptforge_sheets_url');
+                if (saved) {
+                    const input = document.getElementById('sheetsWebhookUrl');
+                    if (input) input.value = saved;
+                }
+            } catch (e) {}
+        }
+
         function setSheetsStatus(connected, msg) {
             const dot = document.getElementById('sheetsStatusDot');
             const txt = document.getElementById('sheetsStatusText');
             if (dot) dot.style.background = connected ? '#10b981' : '#6b7280';
             if (txt) txt.textContent = msg;
         }
+
         function logSheets(msg) {
             const log = document.getElementById('sheetsLog');
             if (!log) return;
             log.style.display = 'block';
-            log.innerHTML += `<div>${msg}</div>`;
+            log.innerHTML += `<div>› ${msg}</div>`;
             log.scrollTop = log.scrollHeight;
         }
+
         function clearSheetsLog() {
             const log = document.getElementById('sheetsLog');
             if (log) {
@@ -1751,6 +2903,7 @@
                 log.style.display = 'none';
             }
         }
+
         function collectProfileData() {
             return {
                 companyName: document.getElementById('companyName')?.value || '',
@@ -1771,138 +2924,135 @@
                 qrUrl: qrUrl,
                 contacts: JSON.stringify(contactData),
                 items: JSON.stringify(items),
-                logoBase64: logoBase64 ? '(has-logo)' : '',
+                logoBase64: logoBase64 ? '(มีโลโก้)' : '',
                 timestamp: new Date().toISOString()
             };
         }
-        async function callSheetsApi(action, data = null) {
-            const baseUrl = getSheetsUrl();
-            if (!baseUrl) {
-                throw new Error('????????? Apps Script URL ????');
-            }
-            if (action === 'ping' || action === 'loadProfile') {
-                const requestUrl = baseUrl + (baseUrl.includes('?') ? '&' : '?') + 'action=' + encodeURIComponent(action);
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 15000);
-                try {
-                    const res = await fetch(requestUrl, {
-                        method: 'GET',
-                        signal: controller.signal,
-                        mode: 'cors',
-                        headers: {
-                            'Accept': 'application/json'
-                        }
-                    });
-                    if (!res.ok) {
-                        throw new Error(`HTTP ${res.status}`);
-                    }
-                    return await res.json();
-                } finally {
-                    clearTimeout(timeoutId);
-                }
-            }
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000);
-            try {
-                const body = new URLSearchParams();
-                body.append('action', action);
-                if (data !== null) {
-                    body.append('data', JSON.stringify(data));
-                }
-                const res = await fetch(baseUrl, {
-                    method: 'POST',
-                    signal: controller.signal,
-                    mode: 'cors',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
-                    },
-                    body: body.toString()
-                });
-                if (!res.ok) {
-                    throw new Error(`HTTP ${res.status}`);
-                }
-                const text = await res.text();
-                try {
-                    return JSON.parse(text);
-                } catch {
-                    return { status: 'unknown', raw: text };
-                }
-            } finally {
-                clearTimeout(timeoutId);
-            }
-        }
+
         async function sheetsTestConnection() {
-            logSheets('?? ??????????????????????...');
+            logSheets('🔗 กำลังทดสอบการเชื่อมต่อ...');
+
             const url = getSheetsUrl();
             if (!url) {
-                showToast('????????? Apps Script URL ????', 'warning');
+                showToast('กรุณากรอก Apps Script URL ก่อน', 'warning');
                 return;
             }
+
             saveSheetsUrlToStorage(url);
+
             try {
-                const result = await callSheetsApi('ping');
-                console.log('Ping response:', result);
-                if (result && result.status === 'ok') {
-                    setSheetsStatus(true, '????????????? ?');
-                    logSheets('? ????????? Google Sheets ??????');
-                    showToast('? ????????? Google Sheets ??????', 'success');
+                const testUrl = url + (url.includes('?') ? '&' : '?') + 'action=ping';
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+                const res = await fetch(testUrl, {
+                    method: 'GET',
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+
+                if (res.ok) {
+                    setSheetsStatus(true, 'เชื่อมต่อแล้ว ✓');
+                    logSheets('✅ เชื่อมต่อ Google Sheets สำเร็จ');
+                    showToast('✅ เชื่อมต่อ Google Sheets สำเร็จ', 'success');
                 } else {
-                    throw new Error((result && result.message) || '?????????????????????????????');
+                    throw new Error(`HTTP ${res.status}`);
                 }
+
             } catch (err) {
                 let errorMsg = err.message;
                 if (err.name === 'AbortError') {
-                    errorMsg = '??????????????????? (Timeout)';
+                    errorMsg = 'การเชื่อมต่อหมดเวลา';
                 }
-                logSheets('? ??????????????????????????: ' + errorMsg);
-                setSheetsStatus(false, '???????????????');
-                showToast('? ?????????????????????: ' + errorMsg, 'error');
+                logSheets('❌ ทดสอบการเชื่อมต่อไม่สำเร็จ: ' + errorMsg);
+                setSheetsStatus(false, 'เชื่อมต่อไม่ได้');
+                showToast('❌ ไม่สามารถเชื่อมต่อได้: ' + errorMsg, 'error');
             }
         }
+
         async function sheetsSaveProfile() {
             const url = getSheetsUrl();
             if (!url) {
-                showToast('????????? Apps Script URL ????', 'warning');
+                showToast('กรุณากรอก Apps Script URL ก่อน', 'warning');
                 return;
             }
+
             saveSheetsUrlToStorage(url);
+
             const data = collectProfileData();
-            logSheets('?? ??????????????????...');
+            logSheets('💾 กำลังบันทึกโปรไฟล์...');
+
             try {
-                const result = await callSheetsApi('saveProfile', data);
-                if (result && (result.status === 'ok' || result.status === 'saved')) {
-                    showToast('?? ?????????????????? Google Sheets ??????!', 'success');
-                    logSheets('? ????????????: ' + (result.message || 'OK'));
-                    setSheetsStatus(true, '?????????? ?');
-                } else {
-                    logSheets('? ???????: ' + JSON.stringify(result).slice(0, 100));
-                    showToast('? ' + ((result && result.message) || '?????????????????????'), 'warning');
-                }
+                // ใช้ form-urlencoded กับ no-cors
+                const formData = new URLSearchParams();
+                formData.append('action', 'saveProfile');
+                formData.append('data', JSON.stringify(data));
+
+                await fetch(url, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: formData.toString()
+                });
+
+                // no-cors ทำให้อ่าน response ไม่ได้ แต่ข้อมูลถูกส่งแล้ว
+                showToast('💾 บันทึกโปรไฟล์ไปยัง Google Sheets สำเร็จ!', 'success');
+                logSheets('✅ ส่งข้อมูลไปยัง Google Sheets แล้ว (ตรวจสอบใน Sheet)');
+                setSheetsStatus(true, 'บันทึกแล้ว ✓');
+
             } catch (err) {
-                let errorMsg = err.message;
-                if (err.name === 'AbortError') {
-                    errorMsg = '???????????????????';
-                }
-                logSheets('? ???????????????: ' + errorMsg);
-                showToast('? ????????????????????????: ' + errorMsg, 'error');
+                logSheets('❌ ส่งข้อมูลไม่สำเร็จ: ' + err.message);
+                showToast('❌ ไม่สามารถบันทึกข้อมูลได้: ' + err.message, 'error');
             }
         }
+
         async function sheetsLoadProfile() {
             const url = getSheetsUrl();
             if (!url) {
-                showToast('????????? Apps Script URL ????', 'warning');
+                showToast('กรุณากรอก Apps Script URL ก่อน', 'warning');
                 return;
             }
+
             saveSheetsUrlToStorage(url);
-            logSheets('?? ???????????????????????? Sheets...');
+
+            logSheets('📥 กำลังโหลดข้อมูลล่าสุดจาก Sheets...');
+
             try {
-                const result = await callSheetsApi('loadProfile');
-                if (!result || !result.data) {
-                    logSheets('? ??????????? ???????????????');
-                    showToast('????????????? Google Sheets', 'warning');
+                // ใช้ GET ในการโหลดข้อมูล
+                const loadUrl = url + (url.includes('?') ? '&' : '?') + 'action=loadProfile';
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+                const res = await fetch(loadUrl, {
+                    method: 'GET',
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+
+                const text = await res.text();
+                let result;
+                try {
+                    result = JSON.parse(text);
+                } catch {
+                    logSheets('⚠ ไม่สามารถอ่านข้อมูลที่ส่งกลับมาได้');
+                    showToast('รูปแบบข้อมูลไม่ถูกต้อง', 'error');
                     return;
                 }
+
+                if (!result || !result.data) {
+                    logSheets('⚠ ไม่พบข้อมูล หรือโปรไฟล์ว่าง');
+                    showToast('ไม่พบข้อมูลใน Google Sheets', 'warning');
+                    return;
+                }
+
                 const d = result.data;
+
                 if (d.companyName !== undefined) { const el = document.getElementById('companyName'); if (el) el.value = d.companyName; }
                 if (d.taxId !== undefined) { const el = document.getElementById('taxId'); if (el) el.value = d.taxId; }
                 if (d.clientName !== undefined) { const el = document.getElementById('clientName'); if (el) el.value = d.clientName; }
@@ -1910,16 +3060,19 @@
                 if (d.invoiceNumber !== undefined) { const el = document.getElementById('invoiceNumber'); if (el) el.value = d.invoiceNumber; }
                 if (d.issueDate !== undefined) { const el = document.getElementById('issueDate'); if (el) el.value = d.issueDate; }
                 if (d.notes !== undefined) { const el = document.getElementById('notes'); if (el) el.value = d.notes; }
+
                 if (d.vatEnabled !== undefined) {
                     vatEnabled = d.vatEnabled === true || d.vatEnabled === 'true' || d.vatEnabled === 'TRUE';
                     updateToggleUI('vat', vatEnabled);
                 }
+
                 if (d.qrEnabled !== undefined) {
                     qrEnabled = d.qrEnabled === true || d.qrEnabled === 'true' || d.qrEnabled === 'TRUE';
                     updateToggleUI('qr', qrEnabled);
                     const qrFields = document.getElementById('qrFields');
                     if (qrFields) qrFields.style.display = qrEnabled ? 'flex' : 'none';
                 }
+
                 if (d.contactEnabled !== undefined) {
                     contactEnabled = d.contactEnabled === true || d.contactEnabled === 'true' || d.contactEnabled === 'TRUE';
                     updateToggleUI('contact', contactEnabled);
@@ -1928,10 +3081,12 @@
                     if (contactFields) contactFields.style.display = contactEnabled ? 'flex' : 'none';
                     if (contactPreview) contactPreview.style.display = contactEnabled ? 'block' : 'none';
                 }
+
                 if (d.bankName !== undefined) { const el = document.getElementById('bankName'); if (el) el.value = d.bankName; }
                 if (d.bankFirstName !== undefined) { const el = document.getElementById('bankFirstName'); if (el) el.value = d.bankFirstName; }
                 if (d.bankLastName !== undefined) { const el = document.getElementById('bankLastName'); if (el) el.value = d.bankLastName; }
                 if (d.bankAccount !== undefined) { const el = document.getElementById('bankAccount'); if (el) el.value = d.bankAccount; }
+
                 if (d.qrLabel !== undefined) {
                     qrLabel = d.qrLabel;
                     const el = document.getElementById('qrLabel');
@@ -1943,39 +3098,45 @@
                     if (el) el.value = d.qrUrl;
                     setTimeout(() => onQrUrlChange(), 100);
                 }
+
                 if (d.contacts) {
                     try {
                         const parsed = typeof d.contacts === 'string' ? JSON.parse(d.contacts) : d.contacts;
                         Object.assign(contactData, parsed);
                         initContactFields();
                         updateContactUI();
-                    } catch (e) {
+                    } catch (e) { 
                         console.warn('Failed to parse contacts:', e);
                     }
                 }
+
                 if (d.items) {
                     try {
                         const parsed = typeof d.items === 'string' ? JSON.parse(d.items) : d.items;
-                        if (Array.isArray(parsed) && parsed.length > 0) {
-                            items = parsed;
+                        if (Array.isArray(parsed) && parsed.length > 0) { 
+                            items = parsed; 
                         }
                     } catch (e) {
                         console.warn('Failed to parse items:', e);
                     }
                 }
+
                 renderAll();
-                setSheetsStatus(true, '?????????????? ?');
-                logSheets('? ????????????????');
-                showToast('?? ????????????? Google Sheets ??????!', 'success');
+                setSheetsStatus(true, 'โหลดข้อมูลแล้ว ✓');
+                logSheets('✅ โหลดข้อมูลสำเร็จ');
+                showToast('📥 โหลดข้อมูลจาก Google Sheets สำเร็จ!', 'success');
+
             } catch (err) {
                 let errorMsg = err.message;
                 if (err.name === 'AbortError') {
-                    errorMsg = '???????????????????';
+                    errorMsg = 'การเชื่อมต่อหมดเวลา';
                 }
-                logSheets('? ???????????????????: ' + errorMsg);
-                showToast('? ??????????????????????: ' + errorMsg, 'error');
+                logSheets('❌ โหลดข้อมูลไม่สำเร็จ: ' + errorMsg);
+                showToast('❌ ไม่สามารถโหลดข้อมูลได้: ' + errorMsg, 'error');
             }
-        }        // ============================================
+        }
+
+        // ============================================
         // INITIALIZATION
         // ============================================
         function init() {
