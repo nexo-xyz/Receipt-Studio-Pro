@@ -1174,26 +1174,24 @@
 
                             <!-- URL Panel -->
                             <div id="qrPanelUrl" style="display: none;">
-                                <input id="qrUrl" class="field" type="url"
-                                    value="https://qr-official.line.me/gs/M_182grrjf_GW.png?oat_content=qr"
-                                    placeholder="https://...">
+                                <input id="qrUrl" class="field" type="url" placeholder="https://example.com/qr.png">
                             </div>
 
                             <div>
                                 <label class="field-label">ข้อความ<span>ใต้ QR</span></label>
-                                <input id="qrLabel" class="field" type="text" value="สแกนเพื่อชำระเงินผ่าน Line Pay"
+                                <input id="qrLabel" class="field" type="text" value="สแกนเพื่อชำระเงิน"
                                     placeholder="สแกนเพื่อชำระเงิน">
                             </div>
 
                             <!-- QR Preview -->
                             <div
                                 style="display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(255,255,255,0.04); border-radius: 12px; border: 1.5px dashed rgba(255,255,255,0.1);">
-                                <img id="qrPreviewImg"
-                                    src="https://qr-official.line.me/gs/M_182grrjf_GW.png?oat_content=qr"
+                                <img id="qrPreviewImg" src=""
                                     style="width: 56px; height: 56px; border-radius: 8px; object-fit: cover; background: #1a1a2e;">
                                 <div style="font-size: 12px; color: var(--text-dim); line-height: 1.6;">
                                     ตัวอย่างรูป<br>
-                                    <span id="qrStatusText" style="color: var(--text-muted);">รูปจะแสดงในใบเสร็จ</span>
+                                    <span id="qrStatusText" style="color: var(--text-muted);">กรุณากรอก URL
+                                        หรืออัปโหลดรูป</span>
                                 </div>
                             </div>
                         </div>
@@ -1288,7 +1286,6 @@
                             <div>
                                 <label class="field-label">Apps Script URL <span>*</span></label>
                                 <input id="sheetsWebhookUrl" class="field" type="url"
-                                    value="https://script.google.com/macros/s/AKfycbztL-IgOV6BazrwcGrEWNHFgumfVShBoSu8yySMX4PTzxei2gr8LcKeazF9CwtBlMPG/exec"
                                     placeholder="https://script.google.com/macros/s/.../exec" style="font-size: 11px;">
                             </div>
                             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -1301,6 +1298,11 @@
                                 <button onclick="sheetsLoadProfile()" class="btn-ghost"
                                     style="flex:1; font-size: 12px; padding: 8px 10px; white-space: nowrap;">📥
                                     โหลดข้อมูล</button>
+                            </div>
+                            <div style="display: flex; justify-content: flex-end;">
+                                <button onclick="clearSheetsLog()"
+                                    style="font-size: 10px; color: var(--text-dim); background: none; border: none; cursor: pointer;">ล้าง
+                                    Log</button>
                             </div>
                             <div id="sheetsLog"
                                 style="display:none; font-size: 11px; padding: 8px 10px; background: rgba(0,0,0,0.2); border-radius: 8px; color: var(--text-muted); line-height: 1.6; max-height: 80px; overflow-y: auto;">
@@ -1507,8 +1509,8 @@
         let currentFont = 'Sarabun';
         let logoBase64 = '';
         let qrBase64 = '';
-        let qrUrl = 'https://qr-official.line.me/gs/M_182grrjf_GW.png?oat_content=qr';
-        let qrLabel = 'สแกนเพื่อชำระเงินผ่าน Line Pay';
+        let qrUrl = '';
+        let qrLabel = 'สแกนเพื่อชำระเงิน';
         let colorMode = 'preset';
         let customFrom = '#ff8c42';
         let customTo = '#f9cb42';
@@ -1661,6 +1663,58 @@
             return `<svg width="14" height="14" viewBox="0 0 24 24" fill="${color}">
         <use href="#icon-${iconName}"></use>
     </svg>`;
+        }
+
+        // ============================================
+        // IMAGE FETCH (with multiple proxies)
+        // ============================================
+        async function fetchImageAsBase64(url) {
+            if (url.startsWith('data:')) {
+                return url;
+            }
+
+            const proxies = [
+                `https://corsproxy.io/?${encodeURIComponent(url)}`,
+                `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+            ];
+
+            let lastError = null;
+
+            for (const proxy of proxies) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+                    const res = await fetch(proxy, {
+                        signal: controller.signal,
+                        mode: 'cors'
+                    });
+
+                    clearTimeout(timeoutId);
+
+                    if (!res.ok) continue;
+
+                    const blob = await res.blob();
+
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(blob);
+                    });
+                } catch (e) {
+                    lastError = e;
+                    continue;
+                }
+            }
+
+            try {
+                const res = await fetch(url, { mode: 'no-cors' });
+                console.warn('Using direct URL (may have CORS issues in export)');
+                return url;
+            } catch (e) {
+                throw lastError || new Error('ไม่สามารถโหลดรูปภาพได้');
+            }
         }
 
         // ============================================
@@ -2299,20 +2353,6 @@
             renderReceiptPreview();
         }
 
-        async function fetchImageAsBase64(url) {
-            const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-            const res = await fetch(proxy);
-            if (!res.ok) throw new Error('Fetch failed');
-            const blob = await res.blob();
-
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(blob);
-            });
-        }
-
         function loadFileAsBase64(file) {
             return new Promise((resolve, reject) => {
                 if (!file.type.startsWith('image/')) { reject('not image'); return; }
@@ -2330,7 +2370,10 @@
             const statusEl = document.getElementById('logoUrlStatus');
             const url = urlInput?.value.trim();
 
-            if (!url) return;
+            if (!url) {
+                showToast('กรุณากรอก URL ของรูปภาพ', 'warning');
+                return;
+            }
 
             if (statusEl) {
                 statusEl.textContent = '⏳ กำลังโหลด…';
@@ -2339,17 +2382,22 @@
 
             try {
                 const b64 = await fetchImageAsBase64(url);
-                applyLogo(b64, '✓ โหลดสำเร็จ');
-                if (statusEl) {
-                    statusEl.textContent = '✓ โหลดสำเร็จ พร้อม Export';
-                    statusEl.style.color = 'rgba(34,197,94,0.9)';
+                if (b64 && b64.startsWith('data:image')) {
+                    applyLogo(b64, '✓ โหลดสำเร็จ');
+                    if (statusEl) {
+                        statusEl.textContent = '✓ โหลดสำเร็จ พร้อม Export';
+                        statusEl.style.color = 'rgba(34,197,94,0.9)';
+                    }
+                } else {
+                    throw new Error('Invalid image data');
                 }
-            } catch {
+            } catch (err) {
+                console.warn('Logo load error:', err);
                 if (statusEl) {
-                    statusEl.textContent = '⚠ ไม่สามารถโหลดได้';
+                    statusEl.textContent = '⚠ ไม่สามารถโหลดได้ (อาจติด CORS)';
                     statusEl.style.color = 'rgba(251,191,36,0.9)';
                 }
-                applyLogo(url, '⚠ URL ตรง (export อาจไม่มีรูป)');
+                applyLogo(url, '⚠ ใช้ URL โดยตรง (export อาจไม่มีรูป)');
             }
         }
 
@@ -2453,21 +2501,32 @@
             const statusEl = document.getElementById('qrStatusText');
 
             if (!qrUrl) {
+                if (previewImg) previewImg.src = '';
+                if (statusEl) statusEl.textContent = 'กรุณากรอก URL หรืออัปโหลดรูป';
                 renderReceiptPreview();
                 return;
             }
 
-            if (previewImg) { previewImg.style.opacity = '0.35'; previewImg.src = qrUrl; }
+            if (previewImg) {
+                previewImg.style.opacity = '0.35';
+                previewImg.src = qrUrl;
+            }
             if (statusEl) statusEl.textContent = '⏳ กำลังโหลด…';
 
             try {
-                qrBase64 = await fetchImageAsBase64(qrUrl);
-                if (previewImg) { previewImg.src = qrBase64; previewImg.style.opacity = '1'; }
-                if (statusEl) statusEl.textContent = '✓ โหลดสำเร็จ พร้อม Export';
+                const b64 = await fetchImageAsBase64(qrUrl);
+                if (b64 && b64.startsWith('data:image')) {
+                    qrBase64 = b64;
+                    if (previewImg) { previewImg.src = b64; previewImg.style.opacity = '1'; }
+                    if (statusEl) statusEl.textContent = '✓ โหลดสำเร็จ พร้อม Export';
+                } else {
+                    throw new Error('Invalid image data');
+                }
             } catch (e) {
+                console.warn('QR load error:', e);
                 qrBase64 = '';
                 if (previewImg) { previewImg.src = qrUrl; previewImg.style.opacity = '0.7'; }
-                if (statusEl) statusEl.textContent = '⚠ ไม่สามารถโหลดได้';
+                if (statusEl) statusEl.textContent = '⚠ ไม่สามารถโหลดได้ (ใช้ URL โดยตรง)';
             }
 
             renderReceiptPreview();
@@ -2582,6 +2641,18 @@
             if (bankFirstName) bankFirstName.value = '';
             if (bankLastName) bankLastName.value = '';
             if (bankAccount) bankAccount.value = '';
+
+            qrUrl = '';
+            qrBase64 = '';
+            qrLabel = 'สแกนเพื่อชำระเงิน';
+            const qrUrlInput = document.getElementById('qrUrl');
+            const qrLabelInput = document.getElementById('qrLabel');
+            const qrPreviewImg = document.getElementById('qrPreviewImg');
+            const qrStatusText = document.getElementById('qrStatusText');
+            if (qrUrlInput) qrUrlInput.value = '';
+            if (qrLabelInput) qrLabelInput.value = 'สแกนเพื่อชำระเงิน';
+            if (qrPreviewImg) qrPreviewImg.src = '';
+            if (qrStatusText) qrStatusText.textContent = 'กรุณากรอก URL หรืออัปโหลดรูป';
 
             contactData = {
                 facebook: { enabled: true, value: 'nebulasoft.studio' },
@@ -2830,6 +2901,14 @@
             log.scrollTop = log.scrollHeight;
         }
 
+        function clearSheetsLog() {
+            const log = document.getElementById('sheetsLog');
+            if (log) {
+                log.innerHTML = '';
+                log.style.display = 'none';
+            }
+        }
+
         function collectProfileData() {
             return {
                 companyName: document.getElementById('companyName')?.value || '',
@@ -2869,19 +2948,42 @@
             try {
                 const testUrl = url + (url.includes('?') ? '&' : '?') + 'action=ping';
 
-                await fetch(testUrl, {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+                const res = await fetch(testUrl, {
                     method: 'GET',
-                    mode: 'no-cors'
+                    signal: controller.signal,
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
                 });
 
-                setSheetsStatus(true, 'เชื่อมต่อแล้ว ✓');
-                logSheets('✅ เชื่อมต่อ Google Sheets สำเร็จ');
-                showToast('✅ เชื่อมต่อ Google Sheets สำเร็จ', 'success');
+                clearTimeout(timeoutId);
+
+                if (res.ok) {
+                    try {
+                        const data = await res.json();
+                        console.log('Ping response:', data);
+                    } catch (e) {
+                        // ignore
+                    }
+                    setSheetsStatus(true, 'เชื่อมต่อแล้ว ✓');
+                    logSheets('✅ เชื่อมต่อ Google Sheets สำเร็จ');
+                    showToast('✅ เชื่อมต่อ Google Sheets สำเร็จ', 'success');
+                } else {
+                    throw new Error(`HTTP ${res.status}`);
+                }
 
             } catch (err) {
-                logSheets('❌ ทดสอบการเชื่อมต่อไม่สำเร็จ: ' + err.message);
+                let errorMsg = err.message;
+                if (err.name === 'AbortError') {
+                    errorMsg = 'การเชื่อมต่อหมดเวลา (Timeout)';
+                }
+                logSheets('❌ ทดสอบการเชื่อมต่อไม่สำเร็จ: ' + errorMsg);
                 setSheetsStatus(false, 'เชื่อมต่อไม่ได้');
-                showToast('❌ ไม่สามารถเชื่อมต่อได้', 'error');
+                showToast('❌ ไม่สามารถเชื่อมต่อได้: ' + errorMsg, 'error');
             }
         }
 
@@ -2903,20 +3005,27 @@
                     data: data
                 };
 
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000);
+
                 const res = await fetch(url, {
                     method: 'POST',
+                    signal: controller.signal,
+                    mode: 'cors',
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Content-Type': 'application/json',
                     },
-                    body: 'data=' + encodeURIComponent(JSON.stringify(payload))
+                    body: JSON.stringify(payload)
                 });
+
+                clearTimeout(timeoutId);
 
                 const text = await res.text();
                 let result;
                 try {
                     result = JSON.parse(text);
                 } catch {
-                    result = { status: 'ok', raw: text };
+                    result = { status: 'unknown', raw: text };
                 }
 
                 if (result && (result.status === 'ok' || result.status === 'saved')) {
@@ -2924,13 +3033,17 @@
                     logSheets('✅ บันทึกสำเร็จ: ' + (result.message || 'OK'));
                     setSheetsStatus(true, 'บันทึกแล้ว ✓');
                 } else {
-                    logSheets('⚠ ผลลัพธ์: ' + JSON.stringify(result).slice(0, 80));
-                    showToast('⚠ บันทึกข้อมูล แต่รูปแบบไม่ถูกต้อง', 'warning');
+                    logSheets('⚠ ผลลัพธ์: ' + JSON.stringify(result).slice(0, 100));
+                    showToast('⚠ ' + (result.message || 'บันทึกข้อมูลไม่สำเร็จ'), 'warning');
                 }
 
             } catch (err) {
-                logSheets('❌ เชื่อมต่อไม่ได้: ' + err.message);
-                showToast('❌ ไม่สามารถบันทึกข้อมูลได้: ' + err.message, 'error');
+                let errorMsg = err.message;
+                if (err.name === 'AbortError') {
+                    errorMsg = 'การเชื่อมต่อหมดเวลา';
+                }
+                logSheets('❌ เชื่อมต่อไม่ได้: ' + errorMsg);
+                showToast('❌ ไม่สามารถบันทึกข้อมูลได้: ' + errorMsg, 'error');
             }
         }
 
@@ -2946,13 +3059,20 @@
             logSheets('📥 กำลังโหลดข้อมูลล่าสุดจาก Sheets...');
 
             try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000);
+
                 const res = await fetch(url, {
                     method: 'POST',
+                    signal: controller.signal,
+                    mode: 'cors',
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Content-Type': 'application/json',
                     },
-                    body: 'data=' + encodeURIComponent(JSON.stringify({ action: 'loadProfile' }))
+                    body: JSON.stringify({ action: 'loadProfile' })
                 });
+
+                clearTimeout(timeoutId);
 
                 const text = await res.text();
                 let result;
@@ -2960,6 +3080,7 @@
                     result = JSON.parse(text);
                 } catch {
                     logSheets('⚠ ไม่สามารถอ่านข้อมูลที่ส่งกลับมาได้');
+                    showToast('รูปแบบข้อมูลไม่ถูกต้อง', 'error');
                     return;
                 }
 
@@ -2971,7 +3092,6 @@
 
                 const d = result.data;
 
-                // Fill form fields
                 if (d.companyName !== undefined) { const el = document.getElementById('companyName'); if (el) el.value = d.companyName; }
                 if (d.taxId !== undefined) { const el = document.getElementById('taxId'); if (el) el.value = d.taxId; }
                 if (d.clientName !== undefined) { const el = document.getElementById('clientName'); if (el) el.value = d.clientName; }
@@ -2981,19 +3101,19 @@
                 if (d.notes !== undefined) { const el = document.getElementById('notes'); if (el) el.value = d.notes; }
 
                 if (d.vatEnabled !== undefined) {
-                    vatEnabled = d.vatEnabled === true || d.vatEnabled === 'true';
+                    vatEnabled = d.vatEnabled === true || d.vatEnabled === 'true' || d.vatEnabled === 'TRUE';
                     updateToggleUI('vat', vatEnabled);
                 }
 
                 if (d.qrEnabled !== undefined) {
-                    qrEnabled = d.qrEnabled === true || d.qrEnabled === 'true';
+                    qrEnabled = d.qrEnabled === true || d.qrEnabled === 'true' || d.qrEnabled === 'TRUE';
                     updateToggleUI('qr', qrEnabled);
                     const qrFields = document.getElementById('qrFields');
                     if (qrFields) qrFields.style.display = qrEnabled ? 'flex' : 'none';
                 }
 
                 if (d.contactEnabled !== undefined) {
-                    contactEnabled = d.contactEnabled === true || d.contactEnabled === 'true';
+                    contactEnabled = d.contactEnabled === true || d.contactEnabled === 'true' || d.contactEnabled === 'TRUE';
                     updateToggleUI('contact', contactEnabled);
                     const contactFields = document.getElementById('contactFields');
                     const contactPreview = document.getElementById('contactPreviewSection');
@@ -3015,6 +3135,7 @@
                     qrUrl = d.qrUrl;
                     const el = document.getElementById('qrUrl');
                     if (el) el.value = d.qrUrl;
+                    setTimeout(() => onQrUrlChange(), 100);
                 }
 
                 if (d.contacts) {
@@ -3023,14 +3144,20 @@
                         Object.assign(contactData, parsed);
                         initContactFields();
                         updateContactUI();
-                    } catch { }
+                    } catch (e) {
+                        console.warn('Failed to parse contacts:', e);
+                    }
                 }
 
                 if (d.items) {
                     try {
                         const parsed = typeof d.items === 'string' ? JSON.parse(d.items) : d.items;
-                        if (Array.isArray(parsed)) { items = parsed; }
-                    } catch { }
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            items = parsed;
+                        }
+                    } catch (e) {
+                        console.warn('Failed to parse items:', e);
+                    }
                 }
 
                 renderAll();
@@ -3039,8 +3166,12 @@
                 showToast('📥 โหลดข้อมูลจาก Google Sheets สำเร็จ!', 'success');
 
             } catch (err) {
-                logSheets('❌ โหลดข้อมูลไม่สำเร็จ: ' + err.message);
-                showToast('❌ ไม่สามารถโหลดข้อมูลได้', 'error');
+                let errorMsg = err.message;
+                if (err.name === 'AbortError') {
+                    errorMsg = 'การเชื่อมต่อหมดเวลา';
+                }
+                logSheets('❌ โหลดข้อมูลไม่สำเร็จ: ' + errorMsg);
+                showToast('❌ ไม่สามารถโหลดข้อมูลได้: ' + errorMsg, 'error');
             }
         }
 
@@ -3071,15 +3202,21 @@
             initLogoUpload();
             initQrUpload();
 
-            fetchImageAsBase64(qrUrl).then(b64 => {
-                qrBase64 = b64;
-                const img = document.getElementById('qrPreviewImg');
-                if (img) { img.src = b64; img.style.opacity = '1'; }
-                const st = document.getElementById('qrStatusText');
-                if (st) st.textContent = '✓ โหลดสำเร็จ พร้อม Export';
-            }).catch(() => {
-                // Silent fail
-            });
+            const qrUrlInput = document.getElementById('qrUrl');
+            if (qrUrlInput && qrUrlInput.value) {
+                qrUrl = qrUrlInput.value;
+                fetchImageAsBase64(qrUrl).then(b64 => {
+                    if (b64 && b64.startsWith('data:image')) {
+                        qrBase64 = b64;
+                        const img = document.getElementById('qrPreviewImg');
+                        if (img) { img.src = b64; img.style.opacity = '1'; }
+                        const st = document.getElementById('qrStatusText');
+                        if (st) st.textContent = '✓ โหลดสำเร็จ พร้อม Export';
+                    }
+                }).catch(() => {
+                    console.warn('Could not preload QR image');
+                });
+            }
 
             const urlInput = document.getElementById('sheetsWebhookUrl');
             if (urlInput) {
@@ -3112,6 +3249,7 @@
         window.sheetsTestConnection = sheetsTestConnection;
         window.sheetsSaveProfile = sheetsSaveProfile;
         window.sheetsLoadProfile = sheetsLoadProfile;
+        window.clearSheetsLog = clearSheetsLog;
     </script>
 </body>
 
