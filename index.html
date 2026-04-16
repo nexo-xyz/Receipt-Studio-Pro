@@ -6,7 +6,7 @@
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://script.google.com https://script.googleusercontent.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; frame-src 'self' https://script.google.com;">
+        content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://script.google.com https://script.googleusercontent.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; connect-src 'self' https://script.google.com https://script.googleusercontent.com;">
     <title>Quick Receipt V.3 | สร้างใบเสร็จ PNG อัจฉริยะ 10/10</title>
 
     <!-- Core Libraries -->
@@ -1070,6 +1070,7 @@
             margin-top: 8px;
             font-size: 11px;
             color: var(--text-dim);
+            flex-wrap: wrap;
         }
 
         .empty-records {
@@ -1481,7 +1482,8 @@
                                 <label class="field-label">Google Apps Script <span>Web App URL</span></label>
                                 <div style="display: flex; gap: 8px;">
                                     <input id="googleScriptUrl" class="field" type="url"
-                                        placeholder="https://script.google.com/macros/s/.../exec" value=""
+                                        placeholder="https://script.google.com/macros/s/.../exec"
+                                        value=""
                                         style="flex: 1; font-size: 12px;">
                                     <button onclick="saveGoogleScriptUrl()" class="url-action-btn"
                                         style="padding: 10px 16px;">
@@ -2052,7 +2054,7 @@
         // ============================================
         // QUICK RECEIPT V.3 - COMPLETE APPLICATION
         // Version: 3.0 (10/10 Production Ready)
-        // With Google Sheets Integration & Data Loading
+        // With Google Sheets Integration & JSONP Data Loading
         // ============================================
 
         // ============================================
@@ -2065,7 +2067,7 @@
         function saveGoogleScriptUrl() {
             const input = document.getElementById('googleScriptUrl');
             const url = input?.value.trim();
-
+            
             if (!url) {
                 showToast('กรุณากรอก Google Apps Script URL', 'warning');
                 return;
@@ -2146,8 +2148,8 @@
             let themeName = 'custom';
             let themeColors = `${customFrom} -> ${customTo}`;
             if (colorMode === 'preset') {
-                const accentKey = Object.keys(ACCENTS).find(key =>
-                    ACCENTS[key].fromHex === currentAccent.fromHex &&
+                const accentKey = Object.keys(ACCENTS).find(key => 
+                    ACCENTS[key].fromHex === currentAccent.fromHex && 
                     ACCENTS[key].toHex === currentAccent.toHex
                 );
                 themeName = accentKey || 'orange';
@@ -2214,7 +2216,7 @@
 
             try {
                 const formData = collectFormData();
-
+                
                 await fetch(googleScriptUrl, {
                     method: 'POST',
                     mode: 'no-cors',
@@ -2239,40 +2241,68 @@
             }
         }
 
-        async function fetchRecords() {
-            if (!googleScriptUrl) {
-                showToast('กรุณาบันทึก Google Apps Script URL ก่อน', 'warning');
-                return [];
-            }
-
-            try {
-                // Note: With no-cors, we can't get response directly
-                // This requires a different approach - we'll use JSONP or proxy
-                // For demo, we'll show a message about the limitation
-                showToast('กำลังโหลดข้อมูล... (อาจใช้เวลาสักครู่)', 'info');
-
-                // Since no-cors prevents reading response, we need a proxy
-                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(googleScriptUrl + '?action=getRecords')}`;
-
-                const response = await fetch(proxyUrl);
-                const data = await response.json();
-
-                if (data.success && data.records) {
-                    cachedRecords = data.records;
-                    return data.records;
+        // ============================================
+        // JSONP DATA FETCHING
+        // ============================================
+        function fetchRecords() {
+            return new Promise((resolve, reject) => {
+                if (!googleScriptUrl) {
+                    reject(new Error('กรุณาบันทึก Google Apps Script URL ก่อน'));
+                    return;
                 }
-                return [];
-            } catch (error) {
-                console.error('Fetch records error:', error);
-                showToast('ไม่สามารถโหลดข้อมูลได้ (อาจต้องใช้ Proxy)', 'warning');
-                return [];
-            }
+
+                const callbackName = 'jsonpCallback_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+                const script = document.createElement('script');
+                
+                const timeout = setTimeout(() => {
+                    cleanup();
+                    reject(new Error('Request timeout - กรุณาลองใหม่'));
+                }, 20000);
+
+                const cleanup = () => {
+                    clearTimeout(timeout);
+                    if (script.parentNode) script.parentNode.removeChild(script);
+                    delete window[callbackName];
+                };
+
+                window[callbackName] = (data) => {
+                    cleanup();
+                    if (data && data.success && data.records) {
+                        cachedRecords = data.records;
+                        resolve(data.records);
+                    } else if (data && data.success && Array.isArray(data.records)) {
+                        // แม้จะไม่มี records ก็ถือว่าสำเร็จ
+                        cachedRecords = [];
+                        resolve([]);
+                    } else {
+                        reject(new Error(data?.error || 'ไม่พบข้อมูลใน Google Sheets'));
+                    }
+                };
+
+                script.onerror = () => {
+                    cleanup();
+                    reject(new Error('ไม่สามารถเชื่อมต่อ Google Apps Script ได้'));
+                };
+
+                // สร้าง URL พร้อม callback parameter
+                let url = googleScriptUrl;
+                const separator = url.includes('?') ? '&' : '?';
+                url += separator + 'action=getRecords&callback=' + callbackName;
+                
+                script.src = url;
+                document.head.appendChild(script);
+            });
         }
 
         function openRecordsModal() {
+            if (!googleScriptUrl) {
+                showToast('กรุณาบันทึก Google Apps Script URL ก่อน', 'warning');
+                return;
+            }
+            
             const modal = document.getElementById('recordsModal');
             if (!modal) return;
-
+            
             modal.classList.add('active');
             loadRecordsList();
         }
@@ -2288,59 +2318,88 @@
 
             container.innerHTML = `
                 <div class="empty-records">
-                    <i class="bi bi-arrow-repeat spin"></i>
-                    <div>กำลังโหลดข้อมูล...</div>
+                    <div class="spinner" style="margin: 0 auto 16px;"></div>
+                    <div>กำลังโหลดข้อมูลจาก Google Sheets...</div>
+                    <div style="font-size: 11px; margin-top: 8px; opacity: 0.7;">อาจใช้เวลาสักครู่ในการโหลดครั้งแรก</div>
                 </div>
             `;
 
-            const records = await fetchRecords();
+            try {
+                const records = await fetchRecords();
+                
+                if (!records || records.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-records">
+                            <i class="bi bi-inbox"></i>
+                            <div>ยังไม่มีบันทึกข้อมูล</div>
+                            <div style="font-size: 12px; margin-top: 8px;">ลองบันทึกข้อมูลก่อน แล้วกลับมาใหม่</div>
+                            <button class="btn-ghost" style="margin-top: 16px;" onclick="closeRecordsModal()">
+                                <i class="bi bi-x-lg"></i> ปิด
+                            </button>
+                        </div>
+                    `;
+                    updateConnectionStatus('connected', '✓ เชื่อมต่อสำเร็จ แต่ยังไม่มีข้อมูล');
+                    return;
+                }
 
-            if (!records || records.length === 0) {
+                let html = '<div class="record-list">';
+                records.slice(0, 20).forEach((record, index) => {
+                    const date = record.timestamp ? new Date(record.timestamp).toLocaleDateString('th-TH') : '-';
+                    const time = record.timestamp ? new Date(record.timestamp).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : '';
+                    const total = parseFloat(record.total || 0).toFixed(2);
+                    
+                    html += `
+                        <div class="record-item" onclick="loadRecordByIndex(${index})">
+                            <div class="record-header">
+                                <span class="record-invoice">
+                                    <i class="bi bi-receipt"></i>
+                                    ${escapeHtml(record.invoiceNumber || '-')}
+                                </span>
+                                <span class="record-date">${date} ${time}</span>
+                            </div>
+                            <div class="record-client">
+                                <i class="bi bi-person"></i>
+                                ${escapeHtml(record.clientName || '-')}
+                            </div>
+                            <div class="record-total">
+                                ฿${total}
+                            </div>
+                            <div class="record-meta">
+                                <span><i class="bi bi-building"></i> ${escapeHtml((record.companyName || '-').substring(0, 25))}${record.companyName?.length > 25 ? '...' : ''}</span>
+                                <span><i class="bi bi-box"></i> ${record.itemsCount || 0} รายการ</span>
+                                <span><i class="bi bi-palette"></i> ${escapeHtml(record.themeName || 'default')}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                
+                if (records.length > 20) {
+                    html += `<div style="text-align: center; margin-top: 16px; color: var(--text-dim); font-size: 12px;">แสดง 20 รายการล่าสุด จากทั้งหมด ${records.length} รายการ</div>`;
+                }
+                
+                container.innerHTML = html;
+                updateConnectionStatus('connected', `✓ โหลดข้อมูลสำเร็จ (${records.length} รายการ)`);
+                
+            } catch (error) {
+                console.error('Load records error:', error);
                 container.innerHTML = `
                     <div class="empty-records">
-                        <i class="bi bi-inbox"></i>
-                        <div>ยังไม่มีบันทึกข้อมูล</div>
-                        <div style="font-size: 12px; margin-top: 8px;">ลองบันทึกข้อมูลก่อน แล้วกลับมาใหม่</div>
-                    </div>
-                `;
-                return;
-            }
-
-            let html = '<div class="record-list">';
-            records.slice(0, 20).forEach((record, index) => {
-                const date = record.timestamp ? new Date(record.timestamp).toLocaleDateString('th-TH') : '-';
-                const time = record.timestamp ? new Date(record.timestamp).toLocaleTimeString('th-TH') : '';
-
-                html += `
-                    <div class="record-item" onclick="loadRecordByIndex(${index})">
-                        <div class="record-header">
-                            <span class="record-invoice">
-                                <i class="bi bi-receipt"></i>
-                                ${escapeHtml(record.invoiceNumber || '-')}
-                            </span>
-                            <span class="record-date">${date} ${time}</span>
-                        </div>
-                        <div class="record-client">
-                            <i class="bi bi-person"></i>
-                            ${escapeHtml(record.clientName || '-')}
-                        </div>
-                        <div class="record-total">
-                            ฿${parseFloat(record.total || 0).toFixed(2)}
-                        </div>
-                        <div class="record-meta">
-                            <span><i class="bi bi-building"></i> ${escapeHtml(record.companyName || '-')}</span>
-                            <span><i class="bi bi-box"></i> ${record.itemsCount || 0} รายการ</span>
+                        <i class="bi bi-exclamation-triangle" style="color: var(--error);"></i>
+                        <div style="color: var(--error);">ไม่สามารถโหลดข้อมูลได้</div>
+                        <div style="font-size: 12px; margin-top: 8px;">${escapeHtml(error.message)}</div>
+                        <div style="display: flex; gap: 8px; justify-content: center; margin-top: 16px;">
+                            <button class="btn-ghost" onclick="loadRecordsList()">
+                                <i class="bi bi-arrow-repeat"></i> ลองใหม่
+                            </button>
+                            <button class="btn-ghost" onclick="closeRecordsModal()">
+                                <i class="bi bi-x-lg"></i> ปิด
+                            </button>
                         </div>
                     </div>
                 `;
-            });
-            html += '</div>';
-
-            if (records.length > 20) {
-                html += `<div style="text-align: center; margin-top: 16px; color: var(--text-dim); font-size: 12px;">แสดง 20 รายการล่าสุด จากทั้งหมด ${records.length} รายการ</div>`;
+                updateConnectionStatus('error', '⚠ ไม่สามารถโหลดข้อมูลได้');
             }
-
-            container.innerHTML = html;
         }
 
         async function loadLatestRecord() {
@@ -2356,17 +2415,24 @@
                 btn.disabled = true;
             }
 
+            updateConnectionStatus('loading', 'กำลังโหลดข้อมูลล่าสุดจาก Google Sheets...');
+
             try {
                 const records = await fetchRecords();
-
+                
                 if (records && records.length > 0) {
                     applyRecordToForm(records[0]);
-                    showToast('โหลดข้อมูลล่าสุดสำเร็จ', 'success');
+                    updateConnectionStatus('connected', `✓ โหลดข้อมูลล่าสุดสำเร็จ (${records[0].invoiceNumber || 'ใบเสร็จ'})`);
+                    showToast(`โหลดข้อมูลสำเร็จ: ${records[0].invoiceNumber || 'ใบเสร็จ'}`, 'success');
+                    launchConfetti();
                 } else {
-                    showToast('ไม่พบข้อมูลใน Google Sheets', 'warning');
+                    updateConnectionStatus('connected', '✓ เชื่อมต่อสำเร็จ แต่ไม่พบข้อมูล');
+                    showToast('ไม่พบข้อมูลใน Google Sheets (ลองบันทึกข้อมูลก่อน)', 'warning');
                 }
             } catch (error) {
-                showToast('ไม่สามารถโหลดข้อมูลได้', 'error');
+                console.error('Load error:', error);
+                updateConnectionStatus('error', '⚠ ' + error.message);
+                showToast('ไม่สามารถโหลดข้อมูลได้: ' + error.message, 'error');
             } finally {
                 if (btn) {
                     btn.disabled = false;
@@ -2379,7 +2445,10 @@
             if (cachedRecords && cachedRecords[index]) {
                 applyRecordToForm(cachedRecords[index]);
                 closeRecordsModal();
-                showToast('โหลดข้อมูลสำเร็จ', 'success');
+                showToast(`โหลดข้อมูล ${cachedRecords[index].invoiceNumber || 'ใบเสร็จ'} สำเร็จ`, 'success');
+                launchConfetti();
+            } else {
+                showToast('ไม่พบข้อมูลที่เลือก', 'error');
             }
         }
 
@@ -2392,25 +2461,29 @@
             setFieldValue('invoiceNumber', record.invoiceNumber);
             setFieldValue('issueDate', record.issueDate);
             setFieldValue('notes', record.notes);
-
+            
             // Bank info
             setFieldValue('bankName', record.bankName);
             setFieldValue('accountNumber', record.accountNumber);
             setFieldValue('accountName', record.accountName);
             setFieldValue('scanMessage1', record.scanMessage1);
             setFieldValue('scanMessage2', record.scanMessage2);
-
+            
             // Toggles
-            if (record.vatEnabled) {
-                const vatEnabledValue = record.vatEnabled.includes('ใช่');
+            if (record.vatEnabled !== undefined) {
+                const vatEnabledValue = typeof record.vatEnabled === 'string' ? 
+                    record.vatEnabled.includes('ใช่') : record.vatEnabled;
                 if (vatEnabled !== vatEnabledValue) toggleVat();
             }
-
-            if (record.paymentEnabled) {
-                const paymentEnabledValue = record.paymentEnabled.includes('ใช่');
+            
+            if (record.paymentEnabled !== undefined) {
+                const paymentEnabledValue = typeof record.paymentEnabled === 'string' ? 
+                    record.paymentEnabled.includes('ใช่') : record.paymentEnabled;
                 if (paymentEnabled !== paymentEnabledValue) togglePayment();
+                const section = document.getElementById('paymentSection');
+                if (section) section.style.display = paymentEnabled ? 'block' : 'none';
             }
-
+            
             // Items
             if (record.items) {
                 try {
@@ -2426,24 +2499,47 @@
                     console.warn('Failed to parse items:', e);
                 }
             }
-
+            
             // Theme
-            if (record.themeName && record.themeName !== 'custom') {
+            if (record.themeName && record.themeName !== 'custom' && ACCENTS[record.themeName]) {
                 applyAccent(record.themeName);
+                if (colorMode !== 'preset') switchColorTab('preset');
             } else if (record.themeColors) {
                 const colors = record.themeColors.split(' -> ');
                 if (colors.length === 2) {
                     customFrom = colors[0];
                     customTo = colors[1];
-                    switchColorTab('custom');
+                    
+                    const fromPicker = document.getElementById('customColorFrom');
+                    const toPicker = document.getElementById('customColorTo');
+                    const fromHex = document.getElementById('customColorFromHex');
+                    const toHex = document.getElementById('customColorToHex');
+                    const preview = document.getElementById('customGradPreview');
+                    
+                    if (fromPicker) fromPicker.value = customFrom;
+                    if (toPicker) toPicker.value = customTo;
+                    if (fromHex) fromHex.value = customFrom;
+                    if (toHex) toHex.value = customTo;
+                    if (preview) preview.style.background = `linear-gradient(135deg, ${customFrom}, ${customTo})`;
+                    
+                    if (colorMode !== 'custom') switchColorTab('custom');
+                    
+                    const hue = hexToHue(customFrom);
+                    document.documentElement.style.setProperty('--accent-h', hue);
+                    document.documentElement.style.setProperty('--accent', customFrom);
+                    document.documentElement.style.setProperty('--accent-glow', customFrom);
                 }
             }
-
+            
             // Font
             if (record.font) {
                 applyFont(record.font);
             }
-
+            
+            // Update toggle UI
+            updateToggleUI('vat', vatEnabled);
+            updateToggleUI('payment', paymentEnabled);
+            
             renderAll();
         }
 
@@ -3633,7 +3729,7 @@
 
             initLogoUpload();
             initQrUpload();
-
+            
             loadSavedScriptUrl();
 
             document.querySelectorAll('.toggle-switch').forEach(toggle => {
@@ -3648,7 +3744,6 @@
             const errorEl = document.getElementById('itemsValidationError');
             if (errorEl) errorEl.style.display = 'none';
 
-            // Close modal on overlay click
             const modal = document.getElementById('recordsModal');
             if (modal) {
                 modal.addEventListener('click', (e) => {
@@ -3656,7 +3751,7 @@
                 });
             }
 
-            console.log('✅ Quick Receipt V.3 initialized - 10/10 Ready with Data Loading');
+            console.log('✅ Quick Receipt V.3 initialized - 10/10 Ready with JSONP Data Loading');
         }
 
         // Start the application
@@ -3682,6 +3777,7 @@
         window.closeRecordsModal = closeRecordsModal;
         window.loadLatestRecord = loadLatestRecord;
         window.loadRecordByIndex = loadRecordByIndex;
+        window.loadRecordsList = loadRecordsList;
     </script>
 </body>
 
