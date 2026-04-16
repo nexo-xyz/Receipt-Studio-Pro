@@ -2935,7 +2935,10 @@
         function saveSheetsUrlToStorage(url) {
             try {
                 localStorage.setItem('receiptforge_sheets_url', url);
-            } catch (e) { }
+                console.log('📝 Saved URL to localStorage');
+            } catch (e) {
+                console.warn('Cannot save to localStorage:', e);
+            }
         }
 
         function loadSheetsUrlFromStorage() {
@@ -2944,14 +2947,17 @@
                 if (saved) {
                     const input = document.getElementById('sheetsWebhookUrl');
                     if (input) input.value = saved;
+                    console.log('📂 Loaded URL from localStorage');
                 }
-            } catch (e) { }
+            } catch (e) {
+                console.warn('Cannot load from localStorage:', e);
+            }
         }
 
         function setSheetsStatus(connected, msg) {
             const dot = document.getElementById('sheetsStatusDot');
             const txt = document.getElementById('sheetsStatusText');
-            if (dot) dot.style.background = connected ? '#22c55e' : '#52525b';
+            if (dot) dot.style.background = connected ? '#22c55e' : '#ef4444';
             if (txt) txt.textContent = msg;
         }
 
@@ -2966,10 +2972,7 @@
 
         function clearSheetsLog() {
             const log = document.getElementById('sheetsLog');
-            if (log) {
-                log.innerHTML = '';
-                log.style.display = 'none';
-            }
+            if (log) { log.innerHTML = ''; log.style.display = 'none'; }
         }
 
         function collectProfileData() {
@@ -2989,10 +2992,32 @@
                 vatEnabled: vatEnabled,
                 paymentEnabled: paymentEnabled,
                 items: JSON.stringify(items),
-                logoBase64: logoBase64 || '',
-                qrBase64: qrBase64 || '',
+                logoBase64: logoBase64 ? '(มีโลโก้)' : '',
+                qrBase64: qrBase64 ? '(มี QR Code)' : '',
                 timestamp: new Date().toISOString()
             };
+        }
+
+        async function fetchWithRetry(url, options, retries = 2) {
+            for (let i = 0; i <= retries; i++) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+                    const response = await fetch(url, {
+                        ...options,
+                        signal: controller.signal,
+                        mode: 'cors'
+                    });
+
+                    clearTimeout(timeoutId);
+                    return response;
+                } catch (err) {
+                    console.warn(`Fetch attempt ${i + 1} failed:`, err.message);
+                    if (i === retries) throw err;
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
         }
 
         async function sheetsTestConnection() {
@@ -3004,34 +3029,37 @@
                 return;
             }
 
+            // ตรวจสอบรูปแบบ URL
+            if (!url.includes('/exec')) {
+                logSheets('⚠️ URL ควรลงท้ายด้วย /exec');
+                showToast('URL ควรลงท้ายด้วย /exec', 'warning');
+            }
+
             saveSheetsUrlToStorage(url);
 
             try {
                 const testUrl = addQueryParam(url, 'action', 'ping');
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                console.log('🔗 Testing URL:', testUrl);
 
-                const res = await fetch(testUrl, {
-                    method: 'GET',
-                    signal: controller.signal,
-                    mode: 'cors'
-                });
+                const res = await fetchWithRetry(testUrl, { method: 'GET' });
 
-                clearTimeout(timeoutId);
-
-                const result = await res.json();
-
-                if (result.status === 'ok') {
+                if (res.ok) {
+                    const data = await res.json();
+                    console.log('✅ Connection success:', data);
                     setSheetsStatus(true, 'เชื่อมต่อแล้ว ✓');
-                    logSheets('✅ เชื่อมต่อ Google Sheets สำเร็จ: ' + result.message);
-                    showToast('✅ เชื่อมต่อ Google Sheets สำเร็จ', 'success');
+                    logSheets('✅ เชื่อมต่อ Google Sheets สำเร็จ: ' + (data.message || 'OK'));
+                    showToast('✅ เชื่อมต่อ Google Sheets สำเร็จ!', 'success');
                 } else {
-                    throw new Error(result.message || 'Unknown error');
+                    const text = await res.text();
+                    console.error('❌ Response not OK:', res.status, text);
+                    throw new Error(`HTTP ${res.status}: ${text.substring(0, 100)}`);
                 }
-
             } catch (err) {
+                console.error('❌ Connection error:', err);
                 let errorMsg = err.message;
-                if (err.name === 'AbortError') errorMsg = 'การเชื่อมต่อหมดเวลา';
+                if (err.name === 'AbortError') errorMsg = 'การเชื่อมต่อหมดเวลา (15 วินาที)';
+                else if (err.message.includes('Failed to fetch')) errorMsg = 'ไม่สามารถเชื่อมต่อได้ - ตรวจสอบ URL และการตั้งค่า CORS';
+
                 logSheets('❌ ทดสอบการเชื่อมต่อไม่สำเร็จ: ' + errorMsg);
                 setSheetsStatus(false, 'เชื่อมต่อไม่ได้');
                 showToast('❌ ไม่สามารถเชื่อมต่อได้: ' + errorMsg, 'error');
@@ -3040,6 +3068,7 @@
 
         async function sheetsSaveProfile() {
             const url = getSheetsUrl();
+
             if (!url) {
                 showToast('กรุณากรอก Apps Script URL ก่อน', 'warning');
                 return;
@@ -3049,37 +3078,32 @@
             const data = collectProfileData();
 
             logSheets('💾 กำลังบันทึกโปรไฟล์...');
+            console.log('📤 Sending data:', data);
 
             try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-                const res = await fetch(url, {
+                const res = await fetchWithRetry(url, {
                     method: 'POST',
-                    mode: 'cors',
-                    signal: controller.signal,
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'saveProfile',
-                        data: data
-                    })
+                    body: JSON.stringify({ action: 'saveProfile', data: data })
                 });
 
-                clearTimeout(timeoutId);
-
-                const result = await res.json();
-
-                if (result.status === 'ok') {
-                    showToast('💾 บันทึกโปรไฟล์ไปยัง Google Sheets สำเร็จ!', 'success');
-                    logSheets('✅ ส่งข้อมูลไปยัง Google Sheets แล้ว');
+                if (res.ok) {
+                    const result = await res.json();
+                    console.log('✅ Save success:', result);
+                    showToast('💾 บันทึกโปรไฟล์สำเร็จ!', 'success');
+                    logSheets('✅ ส่งข้อมูลไปยัง Google Sheets แล้ว (Row: ' + (result.row || 'N/A') + ')');
                     setSheetsStatus(true, 'บันทึกแล้ว ✓');
                 } else {
-                    throw new Error(result.message || 'Unknown error');
+                    const text = await res.text();
+                    console.error('❌ Save failed:', res.status, text);
+                    throw new Error(`HTTP ${res.status}`);
                 }
-
             } catch (err) {
+                console.error('❌ Save error:', err);
                 let errorMsg = err.message;
                 if (err.name === 'AbortError') errorMsg = 'การเชื่อมต่อหมดเวลา';
+                else if (err.message.includes('Failed to fetch')) errorMsg = 'ไม่สามารถเชื่อมต่อได้ - ตรวจสอบ URL';
+
                 logSheets('❌ ส่งข้อมูลไม่สำเร็จ: ' + errorMsg);
                 showToast('❌ ไม่สามารถบันทึกข้อมูลได้: ' + errorMsg, 'error');
             }
@@ -3087,6 +3111,7 @@
 
         async function sheetsLoadProfile() {
             const url = getSheetsUrl();
+
             if (!url) {
                 showToast('กรุณากรอก Apps Script URL ก่อน', 'warning');
                 return;
@@ -3097,20 +3122,24 @@
 
             try {
                 const loadUrl = addQueryParam(url, 'action', 'loadProfile');
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 15000);
+                console.log('📥 Loading from:', loadUrl);
 
-                const res = await fetch(loadUrl, {
-                    method: 'GET',
-                    signal: controller.signal,
-                    mode: 'cors'
-                });
+                const res = await fetchWithRetry(loadUrl, { method: 'GET' });
+                const text = await res.text();
 
-                clearTimeout(timeoutId);
+                let result;
+                try {
+                    result = JSON.parse(text);
+                } catch (e) {
+                    console.error('❌ Invalid JSON response:', text.substring(0, 200));
+                    logSheets('⚠ ไม่สามารถอ่านข้อมูลที่ส่งกลับมาได้ (ไม่ใช่ JSON)');
+                    showToast('รูปแบบข้อมูลไม่ถูกต้อง', 'error');
+                    return;
+                }
 
-                const result = await res.json();
+                console.log('📦 Load result:', result);
 
-                if (!result || result.status === 'empty' || !result.data) {
+                if (result.status === 'empty' || !result.data) {
                     logSheets('⚠ ไม่พบข้อมูล หรือโปรไฟล์ว่าง');
                     showToast('ไม่พบข้อมูลใน Google Sheets', 'warning');
                     return;
@@ -3118,18 +3147,19 @@
 
                 const d = result.data;
 
-                if (d.companyName) document.getElementById('companyName').value = d.companyName;
-                if (d.taxId) document.getElementById('taxId').value = d.taxId;
-                if (d.clientName) document.getElementById('clientName').value = d.clientName;
-                if (d.clientEmail) document.getElementById('clientEmail').value = d.clientEmail;
-                if (d.invoiceNumber) document.getElementById('invoiceNumber').value = d.invoiceNumber;
-                if (d.issueDate) document.getElementById('issueDate').value = d.issueDate;
-                if (d.notes) document.getElementById('notes').value = d.notes;
-                if (d.bankName) document.getElementById('bankName').value = d.bankName;
-                if (d.accountNumber) document.getElementById('accountNumber').value = d.accountNumber;
-                if (d.accountName) document.getElementById('accountName').value = d.accountName;
-                if (d.scanMessage1) document.getElementById('scanMessage1').value = d.scanMessage1;
-                if (d.scanMessage2) document.getElementById('scanMessage2').value = d.scanMessage2;
+                // อัปเดตฟอร์ม
+                if (d.companyName !== undefined) { const el = document.getElementById('companyName'); if (el) el.value = d.companyName; }
+                if (d.taxId !== undefined) { const el = document.getElementById('taxId'); if (el) el.value = d.taxId; }
+                if (d.clientName !== undefined) { const el = document.getElementById('clientName'); if (el) el.value = d.clientName; }
+                if (d.clientEmail !== undefined) { const el = document.getElementById('clientEmail'); if (el) el.value = d.clientEmail; }
+                if (d.invoiceNumber !== undefined) { const el = document.getElementById('invoiceNumber'); if (el) el.value = d.invoiceNumber; }
+                if (d.issueDate !== undefined) { const el = document.getElementById('issueDate'); if (el) el.value = d.issueDate; }
+                if (d.notes !== undefined) { const el = document.getElementById('notes'); if (el) el.value = d.notes; }
+                if (d.bankName !== undefined) { const el = document.getElementById('bankName'); if (el) el.value = d.bankName; }
+                if (d.accountNumber !== undefined) { const el = document.getElementById('accountNumber'); if (el) el.value = d.accountNumber; }
+                if (d.accountName !== undefined) { const el = document.getElementById('accountName'); if (el) el.value = d.accountName; }
+                if (d.scanMessage1 !== undefined) { const el = document.getElementById('scanMessage1'); if (el) el.value = d.scanMessage1; }
+                if (d.scanMessage2 !== undefined) { const el = document.getElementById('scanMessage2'); if (el) el.value = d.scanMessage2; }
 
                 if (d.vatEnabled !== undefined) {
                     vatEnabled = toBoolean(d.vatEnabled);
@@ -3146,16 +3176,10 @@
                 if (d.items) {
                     try {
                         const parsed = typeof d.items === 'string' ? JSON.parse(d.items) : d.items;
-                        if (Array.isArray(parsed) && parsed.length > 0) {
-                            items = parsed;
-                        }
+                        if (Array.isArray(parsed) && parsed.length > 0) items = parsed;
                     } catch (e) {
                         console.warn('Failed to parse items:', e);
                     }
-                }
-
-                if (d.logoNote && d.logoNote !== '') {
-                    logSheets('ℹ โลโก้ถูกบันทึกไว้ แต่ต้องอัปโหลดใหม่');
                 }
 
                 renderAll();
@@ -3164,8 +3188,11 @@
                 showToast('📥 โหลดข้อมูลจาก Google Sheets สำเร็จ!', 'success');
 
             } catch (err) {
+                console.error('❌ Load error:', err);
                 let errorMsg = err.message;
                 if (err.name === 'AbortError') errorMsg = 'การเชื่อมต่อหมดเวลา';
+                else if (err.message.includes('Failed to fetch')) errorMsg = 'ไม่สามารถเชื่อมต่อได้';
+
                 logSheets('❌ โหลดข้อมูลไม่สำเร็จ: ' + errorMsg);
                 showToast('❌ ไม่สามารถโหลดข้อมูลได้: ' + errorMsg, 'error');
             }
