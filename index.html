@@ -2118,7 +2118,7 @@
         // GOOGLE SHEETS INTEGRATION
         // ============================================
         const GOOGLE_SCRIPT_STORAGE_KEY = 'quick_receipt_google_script_url';
-        let googleScriptUrl = localStorage.getItem(GOOGLE_SCRIPT_STORAGE_KEY) || '';
+        let googleScriptUrl = localStorage.getItem(GOOGLE_SCRIPT_STORAGE_KEY) || 'https://script.google.com/macros/s/AKfycbzyT-ahj3_Sip3UrR-76LbfLDrBU1uXrlylkQAxq47o9yv55jLFgJvnvsPhu3tuU7e7/exec';
         let cachedRecords = [];
 
         function saveGoogleScriptUrl() {
@@ -3770,49 +3770,62 @@
         // INITIALIZATION
         // ============================================
         function init() {
-            const issueDate = document.getElementById('issueDate');
-            if (issueDate && !issueDate.value) issueDate.value = new Date().toISOString().slice(0, 10);
-
-            const invEl = document.getElementById('invoiceNumber');
-            if (invEl && !invEl.value) generateOrderNumber();
-
-            initColorSwatches();
-            initFontPicker();
-            applyFont('Sarabun');
-
-            renderAll();
-            setupItemsContainerListener();
-            setupEventListeners();
-
-            initLogoUpload();
-            initQrUpload();
-
-            loadSavedScriptUrl();
-
-            document.querySelectorAll('.toggle-switch').forEach(toggle => {
-                toggle.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        toggle.click();
+                // อ่าน URL Parameter สำหรับ Google Script URL (เพิ่มส่วนนี้)
+                const urlParams = new URLSearchParams(window.location.search);
+                const scriptParam = urlParams.get('script');
+                if (scriptParam) {
+                    googleScriptUrl = decodeURIComponent(scriptParam);
+                    localStorage.setItem(GOOGLE_SCRIPT_STORAGE_KEY, googleScriptUrl);
+                    const scriptUrlInput = document.getElementById('googleScriptUrl');
+                    if (scriptUrlInput) {
+                        scriptUrlInput.value = googleScriptUrl;
                     }
-                });
-            });
+                    updateConnectionStatus('saved', '✓ โหลด URL จากลิงก์เรียบร้อย');
+                }
 
-            const errorEl = document.getElementById('itemsValidationError');
-            if (errorEl) errorEl.style.display = 'none';
+                const issueDate = document.getElementById('issueDate');
+                if (issueDate && !issueDate.value) issueDate.value = new Date().toISOString().slice(0, 10);
 
-            const modal = document.getElementById('recordsModal');
-            if (modal) {
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) closeRecordsModal();
+                const invEl = document.getElementById('invoiceNumber');
+                if (invEl && !invEl.value) generateOrderNumber();
+
+                initColorSwatches();
+                initFontPicker();
+                applyFont('Sarabun');
+
+                renderAll();
+                setupItemsContainerListener();
+                setupEventListeners();
+
+                initLogoUpload();
+                initQrUpload();
+
+                loadSavedScriptUrl();
+
+                document.querySelectorAll('.toggle-switch').forEach(toggle => {
+                    toggle.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            toggle.click();
+                        }
+                    });
                 });
+
+                const errorEl = document.getElementById('itemsValidationError');
+                if (errorEl) errorEl.style.display = 'none';
+
+                const modal = document.getElementById('recordsModal');
+                if (modal) {
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal) closeRecordsModal();
+                    });
+                }
+
+                console.log('✅ Quick Receipt V.3 initialized - 10/10 Ready with JSONP Data Loading');
             }
 
-            console.log('✅ Quick Receipt V.3 initialized - 10/10 Ready with JSONP Data Loading');
-        }
-
-        // Start the application
-        init();
+            // Start the application
+            init();
 
         // Expose functions to global scope
         window.switchPage = switchPage;
