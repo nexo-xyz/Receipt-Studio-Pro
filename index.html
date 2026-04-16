@@ -1435,8 +1435,8 @@
                                 <div>
                                     <label class="field-label"><span class="required">ออกใบเสร็จ</span>ให้</label>
                                     <input id="clientName" class="field" type="text"
-                                        value="บริษัท ออไรออน ดิจิทัล จำกัด" required aria-label="ชื่อลูกค้า" minlength="2"
-                                        maxlength="100">
+                                        value="บริษัท ออไรออน ดิจิทัล จำกัด" required aria-label="ชื่อลูกค้า"
+                                        minlength="2" maxlength="100">
                                     <div class="validation-error">⚠️ กรุณากรอกชื่อลูกค้า</div>
                                 </div>
                                 <div>
@@ -1524,7 +1524,8 @@
                         <div>
                             <label class="field-label">หมายเหตุ <span>/</span> เงื่อนไขการชำระ</label>
                             <textarea id="notes" class="field" rows="2" placeholder="ขอบคุณที่ใช้บริการ!"
-                                aria-label="หมายเหตุ" maxlength="500">ขอบคุณที่เลือกใช้บริการ Quick Receipt กรุณาชำระภายใน 15 วัน</textarea>
+                                aria-label="หมายเหตุ"
+                                maxlength="500">ขอบคุณที่เลือกใช้บริการ Quick Receipt กรุณาชำระภายใน 15 วัน</textarea>
                         </div>
 
                         <!-- Payment Section -->
@@ -1698,7 +1699,8 @@
                                     <div
                                         style="font-size: clamp(13px, 3vw, 14px); font-weight: 700; color: var(--text-primary);">
                                         Google Sheets Integration</div>
-                                    <div style="font-size: 11px; color: var(--text-dim);">บันทึกข้อมูลอัตโนมัติ • Analytics
+                                    <div style="font-size: 11px; color: var(--text-dim);">บันทึกข้อมูลอัตโนมัติ •
+                                        Analytics
                                         • Backup</div>
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 8px;">
@@ -2038,31 +2040,31 @@
         // ============================================
         function validateForm() {
             const errors = [];
-            
+
             // Company name validation
             const companyName = document.getElementById('companyName')?.value.trim();
             if (!companyName || companyName.length < 2) {
                 errors.push('กรุณากรอกชื่อบริษัท (อย่างน้อย 2 ตัวอักษร)');
             }
-            
+
             // Client name validation
             const clientName = document.getElementById('clientName')?.value.trim();
             if (!clientName || clientName.length < 2) {
                 errors.push('กรุณากรอกชื่อลูกค้า');
             }
-            
+
             // Invoice number validation
             const invoiceNumber = document.getElementById('invoiceNumber')?.value.trim();
             if (!invoiceNumber) {
                 errors.push('กรุณากรอกเลขที่ใบสั่งซื้อ');
             }
-            
+
             // Date validation
             const issueDate = document.getElementById('issueDate')?.value;
             if (!issueDate) {
                 errors.push('กรุณาเลือกวันที่ออกใบเสร็จ');
             }
-            
+
             // Items validation
             if (!items || items.length === 0) {
                 errors.push('กรุณาเพิ่มรายการสินค้าอย่างน้อย 1 รายการ');
@@ -2078,19 +2080,19 @@
                     errors.push('กรุณากรอกรายละเอียดสินค้าให้ถูกต้อง');
                 }
             }
-            
+
             // Tax ID validation (optional but if provided must be 13 digits)
             const taxId = document.getElementById('taxId')?.value.trim();
             if (taxId && !/^\d{13}$/.test(taxId.replace(/-/g, ''))) {
                 errors.push('เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก');
             }
-            
+
             // Email validation (optional but if provided must be valid)
             const clientEmail = document.getElementById('clientEmail')?.value.trim();
             if (clientEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientEmail)) {
                 errors.push('รูปแบบอีเมลไม่ถูกต้อง');
             }
-            
+
             return errors;
         }
 
@@ -2109,12 +2111,12 @@
                     canvas.style.display = 'none';
                 }
             }
-            
+
             const welcomePage = document.getElementById('pageWelcome');
             const builderPage = document.getElementById('pageBuilder');
             const tabWelcome = document.getElementById('tabWelcome');
             const tabBuilder = document.getElementById('tabBuilder');
-            
+
             if (page === 'welcome') {
                 welcomePage.classList.add('active');
                 builderPage.classList.remove('active');
@@ -2397,7 +2399,7 @@
         function renderItemInputs() {
             const container = document.getElementById('itemsContainer');
             if (!container) return;
-            
+
             container.innerHTML = '';
             items.forEach((item, idx) => {
                 const row = document.createElement('div');
@@ -2414,7 +2416,7 @@
                 `;
                 container.appendChild(row);
             });
-            
+
             // Update items validation error visibility
             const errorEl = document.getElementById('itemsValidationError');
             if (errorEl) {
@@ -2436,28 +2438,28 @@
         function handleItemInput(e) {
             const target = e.target;
             if (!target.classList.contains('item-desc') && !target.classList.contains('item-qty') && !target.classList.contains('item-price')) return;
-            
+
             const row = target.closest('[data-index]');
             if (!row) return;
-            
+
             const idx = parseInt(row.dataset.index);
             if (isNaN(idx) || idx >= items.length) return;
-            
+
             const desc = row.querySelector('.item-desc');
             const qty = row.querySelector('.item-qty');
             const price = row.querySelector('.item-price');
-            
+
             if (desc) items[idx].description = desc.value;
             if (qty) items[idx].quantity = parseFloat(qty.value) || 0;
             if (price) items[idx].unitPrice = parseFloat(price.value) || 0;
-            
+
             debouncedRender();
         }
 
         function setupItemsContainerListener() {
             const container = document.getElementById('itemsContainer');
             if (!container) return;
-            
+
             // Remove old listeners if they exist
             if (itemsContainerClickHandler) {
                 container.removeEventListener('click', itemsContainerClickHandler);
@@ -2465,11 +2467,11 @@
             if (itemsContainerInputHandler) {
                 container.removeEventListener('input', itemsContainerInputHandler);
             }
-            
+
             // Create new handlers
             itemsContainerClickHandler = handleItemClick;
             itemsContainerInputHandler = handleItemInput;
-            
+
             // Add listeners
             container.addEventListener('click', itemsContainerClickHandler);
             container.addEventListener('input', itemsContainerInputHandler);
@@ -2497,7 +2499,7 @@
             const thumb = document.getElementById(`${type}Thumb`);
             const label = document.getElementById(`${type}ToggleLabel`);
             if (!track || !thumb || !label) return;
-            
+
             track.setAttribute('data-enabled', enabled);
             label.style.color = enabled ? 'var(--accent)' : 'var(--text-dim)';
             thumb.style.left = enabled ? '23px' : '3px';
@@ -2528,7 +2530,7 @@
             const uploadTab = document.getElementById('qrTabUpload');
             const urlTab = document.getElementById('qrTabUrl');
             if (!uploadPanel || !urlPanel || !uploadTab || !urlTab) return;
-            
+
             if (tab === 'upload') {
                 uploadPanel.style.display = 'block';
                 urlPanel.style.display = 'none';
@@ -2549,12 +2551,12 @@
             const icon = document.getElementById('qrPlaceholderIcon');
             const removeBtn = document.getElementById('qrRemoveBtn');
             const statusEl = document.getElementById('qrStatusText');
-            
+
             if (img) { img.src = b64; img.style.display = 'block'; }
             if (icon) icon.style.display = 'none';
             if (removeBtn) removeBtn.style.display = 'block';
             if (statusEl) statusEl.textContent = statusMsg || '✓ QR Code พร้อมใช้งาน';
-            
+
             renderReceiptPreview();
             showToast('โหลด QR Code สำเร็จ', 'success');
         }
@@ -2565,19 +2567,19 @@
             const icon = document.getElementById('qrPlaceholderIcon');
             const removeBtn = document.getElementById('qrRemoveBtn');
             const statusEl = document.getElementById('qrStatusText');
-            
+
             if (img) { img.src = ''; img.style.display = 'none'; }
             if (icon) icon.style.display = 'block';
             if (removeBtn) removeBtn.style.display = 'none';
             if (statusEl) statusEl.textContent = 'ยังไม่มี QR Code';
-            
+
             const fileInput = document.getElementById('qrFileInput');
             const urlInput = document.getElementById('qrUrlInput');
             const urlStatus = document.getElementById('qrUrlStatus');
             if (fileInput) fileInput.value = '';
             if (urlInput) urlInput.value = '';
             if (urlStatus) urlStatus.textContent = '';
-            
+
             renderReceiptPreview();
         }
 
@@ -2585,10 +2587,10 @@
             const urlInput = document.getElementById('qrUrlInput');
             const statusEl = document.getElementById('qrUrlStatus');
             const url = urlInput?.value.trim();
-            
+
             if (!url) { showToast('กรุณากรอก URL ของ QR Code', 'warning'); return; }
             if (statusEl) { statusEl.textContent = '⏳ กำลังโหลด…'; statusEl.style.color = 'var(--text-dim)'; }
-            
+
             try {
                 const b64 = await fetchImageAsBase64(url);
                 if (b64) {
@@ -2605,7 +2607,7 @@
             const fileInput = document.getElementById('qrFileInput');
             const dropZone = document.getElementById('qrDropZone');
             if (!dropZone || !fileInput) return;
-            
+
             dropZone.addEventListener('click', () => fileInput.click());
             fileInput.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
@@ -2613,7 +2615,7 @@
                 try { const b64 = await loadFileAsBase64(file); applyQr(b64, `✓ ${file.name}`); }
                 catch (err) { showToast(err === 'too large' ? 'ไฟล์ใหญ่เกิน 5MB' : 'ไม่รองรับไฟล์นี้', 'error'); }
             });
-            
+
             ['dragover', 'dragleave', 'drop'].forEach(ev => dropZone.addEventListener(ev, e => e.preventDefault()));
             dropZone.addEventListener('dragover', () => dropZone.style.borderColor = '#71717a');
             dropZone.addEventListener('dragleave', () => dropZone.style.borderColor = '#3f3f46');
@@ -2624,7 +2626,7 @@
                 try { const b64 = await loadFileAsBase64(file); applyQr(b64, `✓ ${file.name}`); }
                 catch (err) { showToast(err === 'too large' ? 'ไฟล์ใหญ่เกิน 5MB' : 'ไม่รองรับไฟล์นี้', 'error'); }
             });
-            
+
             const urlInput = document.getElementById('qrUrlInput');
             if (urlInput) urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') loadQrFromUrl(); });
         }
@@ -2636,7 +2638,7 @@
             const row = document.getElementById('swatchRow');
             if (!row) return;
             row.innerHTML = '';
-            
+
             Object.entries(ACCENTS).forEach(([key, value]) => {
                 const swatch = document.createElement('div');
                 swatch.className = `swatch ${key === 'orange' ? 'active' : ''}`;
@@ -2656,7 +2658,7 @@
             const row = document.getElementById('fontPickerRow');
             if (!row) return;
             row.innerHTML = '';
-            
+
             THAI_FONTS.forEach(font => {
                 const pill = document.createElement('button');
                 pill.className = `font-pill ${font === currentFont ? 'active' : ''}`;
@@ -2674,13 +2676,13 @@
             document.documentElement.style.setProperty('--accent-h', currentAccent.h);
             document.documentElement.style.setProperty('--accent', currentAccent.fromHex);
             document.documentElement.style.setProperty('--accent-glow', currentAccent.fromHex);
-            
+
             document.querySelectorAll('.swatch').forEach(s => s.classList.toggle('active', s.dataset.accent === key));
-            
+
             // Update toggle colors
             updateToggleUI('vat', vatEnabled);
             updateToggleUI('payment', paymentEnabled);
-            
+
             renderReceiptPreview();
         }
 
@@ -2698,12 +2700,12 @@
             const customBtn = document.getElementById('colorTabCustom');
             const presetPanel = document.getElementById('colorPanelPreset');
             const customPanel = document.getElementById('colorPanelCustom');
-            
+
             if (!presetBtn || !customBtn || !presetPanel || !customPanel) return;
-            
+
             const activeStyle = `border: 1.5px solid #3f3f46; background: #27272a; color: #d4d4d8;`;
             const inactiveStyle = 'border: 1.5px solid #2a2a2e; background: #18181b; color: var(--text-dim);';
-            
+
             if (tab === 'preset') {
                 presetPanel.style.display = 'block';
                 customPanel.style.display = 'none';
@@ -2725,21 +2727,21 @@
             const fromHex = document.getElementById('customColorFromHex');
             const toHex = document.getElementById('customColorToHex');
             const preview = document.getElementById('customGradPreview');
-            
+
             if (!fromPicker || !toPicker) return;
-            
+
             customFrom = fromPicker.value;
             customTo = toPicker.value;
-            
+
             if (fromHex) fromHex.value = customFrom;
             if (toHex) toHex.value = customTo;
             if (preview) preview.style.background = `linear-gradient(135deg, ${customFrom}, ${customTo})`;
-            
+
             const hue = hexToHue(customFrom);
             document.documentElement.style.setProperty('--accent-h', hue);
             document.documentElement.style.setProperty('--accent', customFrom);
             document.documentElement.style.setProperty('--accent-glow', customFrom);
-            
+
             renderReceiptPreview();
         }
 
@@ -2747,7 +2749,7 @@
             const hexInput = document.getElementById(`customColor${which === 'from' ? 'From' : 'To'}Hex`);
             const picker = document.getElementById(`customColor${which === 'from' ? 'From' : 'To'}`);
             if (!hexInput || !picker) return;
-            
+
             const value = hexInput.value.trim();
             if (/^#[0-9A-F]{6}$/i.test(value)) {
                 picker.value = value;
@@ -2764,7 +2766,7 @@
             const uploadTab = document.getElementById('logoTabUpload');
             const urlTab = document.getElementById('logoTabUrl');
             if (!uploadPanel || !urlPanel || !uploadTab || !urlTab) return;
-            
+
             if (tab === 'upload') {
                 uploadPanel.style.display = 'block';
                 urlPanel.style.display = 'none';
@@ -2786,13 +2788,13 @@
             const wrap = document.getElementById('logoPreviewWrap');
             const removeBtn = document.getElementById('logoRemoveBtn');
             const statusEl = document.getElementById('logoStatusText');
-            
+
             if (img) { img.src = b64; img.style.display = 'block'; }
             if (icon) icon.style.display = 'none';
             if (wrap) { wrap.style.border = '2px solid #3f3f46'; wrap.style.background = '#27272a'; }
             if (removeBtn) removeBtn.style.display = 'block';
             if (statusEl) statusEl.textContent = statusMsg || '✓ โลโก้พร้อมใช้งาน';
-            
+
             renderReceiptPreview();
             showToast('โหลดโลโก้สำเร็จ', 'success');
         }
@@ -2804,20 +2806,20 @@
             const wrap = document.getElementById('logoPreviewWrap');
             const removeBtn = document.getElementById('logoRemoveBtn');
             const statusEl = document.getElementById('logoStatusText');
-            
+
             if (img) { img.src = ''; img.style.display = 'none'; }
             if (icon) icon.style.display = 'block';
             if (wrap) { wrap.style.border = '2px dashed #3f3f46'; wrap.style.background = '#27272a'; }
             if (removeBtn) removeBtn.style.display = 'none';
             if (statusEl) statusEl.textContent = 'ยังไม่มีโลโก้';
-            
+
             const fileInput = document.getElementById('logoFileInput');
             const urlInput = document.getElementById('logoUrlInput');
             const urlStatus = document.getElementById('logoUrlStatus');
             if (fileInput) fileInput.value = '';
             if (urlInput) urlInput.value = '';
             if (urlStatus) urlStatus.textContent = '';
-            
+
             renderReceiptPreview();
         }
 
@@ -2836,10 +2838,10 @@
             const urlInput = document.getElementById('logoUrlInput');
             const statusEl = document.getElementById('logoUrlStatus');
             const url = urlInput?.value.trim();
-            
+
             if (!url) { showToast('กรุณากรอก URL ของรูปภาพ', 'warning'); return; }
             if (statusEl) { statusEl.textContent = '⏳ กำลังโหลด…'; statusEl.style.color = 'var(--text-dim)'; }
-            
+
             try {
                 const b64 = await fetchImageAsBase64(url);
                 if (b64) {
@@ -2856,7 +2858,7 @@
             const fileInput = document.getElementById('logoFileInput');
             const dropZone = document.getElementById('logoDropZone');
             if (!dropZone || !fileInput) return;
-            
+
             dropZone.addEventListener('click', () => fileInput.click());
             fileInput.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
@@ -2864,7 +2866,7 @@
                 try { const b64 = await loadFileAsBase64(file); applyLogo(b64, `✓ ${file.name}`); }
                 catch (err) { showToast(err === 'too large' ? 'ไฟล์ใหญ่เกิน 5MB' : 'ไม่รองรับไฟล์นี้', 'error'); }
             });
-            
+
             ['dragover', 'dragleave', 'drop'].forEach(ev => dropZone.addEventListener(ev, e => e.preventDefault()));
             dropZone.addEventListener('dragover', () => dropZone.style.borderColor = '#71717a');
             dropZone.addEventListener('dragleave', () => dropZone.style.borderColor = '#3f3f46');
@@ -2875,7 +2877,7 @@
                 try { const b64 = await loadFileAsBase64(file); applyLogo(b64, `✓ ${file.name}`); }
                 catch (err) { showToast(err === 'too large' ? 'ไฟล์ใหญ่เกิน 5MB' : 'ไม่รองรับไฟล์นี้', 'error'); }
             });
-            
+
             const urlInput = document.getElementById('logoUrlInput');
             if (urlInput) urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') loadLogoFromUrl(); });
         }
@@ -2893,7 +2895,7 @@
                 { description: 'แพ็คเกจซอฟต์แวร์ Pro รายปี', quantity: 1, unitPrice: 299.00 },
                 { description: 'บริการตรวจสอบและให้คำปรึกษา UI/UX', quantity: 2, unitPrice: 85.00 }
             ];
-            
+
             const companyName = document.getElementById('companyName');
             const taxId = document.getElementById('taxId');
             const clientName = document.getElementById('clientName');
@@ -2905,7 +2907,7 @@
             const accountName = document.getElementById('accountName');
             const scanMessage1 = document.getElementById('scanMessage1');
             const scanMessage2 = document.getElementById('scanMessage2');
-            
+
             if (companyName) companyName.value = 'Quick Receipt V.3';
             if (taxId) taxId.value = '1234567890123';
             if (clientName) clientName.value = 'บริษัท ออไรออน ดิจิทัล จำกัด';
@@ -2915,25 +2917,25 @@
             if (accountName) accountName.value = 'บริษัท ออไรออน ดิจิทัล จำกัด';
             if (scanMessage1) scanMessage1.value = 'สแกนเพื่อชำระเงิน';
             if (scanMessage2) scanMessage2.value = 'สแกน QR Code ด้วยกล้องมือถือ';
-            
+
             generateOrderNumber();
             if (issueDate) issueDate.value = new Date().toISOString().slice(0, 10);
             if (notes) notes.value = 'ขอบคุณที่เลือกใช้บริการ Quick Receipt กรุณาชำระภายใน 15 วัน';
-            
+
             vatEnabled = true;
             paymentEnabled = true;
             updateToggleUI('vat', true);
             updateToggleUI('payment', true);
-            
+
             const paymentSection = document.getElementById('paymentSection');
             if (paymentSection) paymentSection.style.display = 'block';
-            
+
             applyAccent('orange');
             applyFont('Sarabun');
             removeLogo();
             removeQr();
             renderAll();
-            
+
             showToast('รีเซ็ตข้อมูลเรียบร้อย', 'success');
         }
 
@@ -2947,21 +2949,21 @@
                 showToast(errors[0], 'warning');
                 return;
             }
-            
+
             const btn = document.getElementById('downloadPNGBtn');
             if (!btn) return;
-            
+
             const originalText = btn.innerHTML;
             btn.innerHTML = '<div class="spinner"></div> กำลังสร้าง…';
             btn.disabled = true;
-            
+
             try {
                 await document.fonts.ready;
                 await new Promise(resolve => setTimeout(resolve, 150));
-                
+
                 const el = document.getElementById('receiptCapture');
                 if (!el) throw new Error('ไม่พบองค์ประกอบใบเสร็จ');
-                
+
                 const canvas = await html2canvas(el, {
                     scale: 3,
                     backgroundColor: '#ffffff',
@@ -2970,14 +2972,14 @@
                     allowTaint: false,
                     foreignObjectRendering: false
                 });
-                
+
                 const link = document.createElement('a');
                 const invoiceNum = document.getElementById('invoiceNumber');
                 const num = (invoiceNum?.value || 'receipt').replace(/[^a-z0-9]/gi, '_');
                 link.download = `receipt_${num}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
-                
+
                 launchConfetti();
                 showToast('🎉 ดาวน์โหลด PNG สำเร็จ!', 'success');
             } catch (err) {
@@ -2992,18 +2994,18 @@
         function launchConfetti() {
             const canvas = document.getElementById('confettiCanvas');
             if (!canvas) return;
-            
+
             const ctx = canvas.getContext('2d');
-            
+
             if (confettiAnimationFrame) {
                 cancelAnimationFrame(confettiAnimationFrame);
                 confettiAnimationFrame = null;
             }
-            
+
             canvas.style.display = 'block';
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-            
+
             const pieces = Array.from({ length: 100 }, () => ({
                 x: Math.random() * canvas.width,
                 y: Math.random() * canvas.height * -0.5 - 20,
@@ -3014,17 +3016,17 @@
                 rotation: Math.random() * 360,
                 rotationSpeed: Math.random() * 10 - 5
             }));
-            
+
             const start = performance.now();
             const DURATION = 3000;
-            
+
             function animate(now) {
                 const elapsed = now - start;
                 const progress = Math.min(elapsed / DURATION, 1);
-                
+
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.globalAlpha = 1 - progress * 0.7;
-                
+
                 pieces.forEach(p => {
                     ctx.save();
                     ctx.translate(p.x, p.y);
@@ -3032,13 +3034,13 @@
                     ctx.fillStyle = p.color;
                     ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
                     ctx.restore();
-                    
+
                     p.x += p.vx;
                     p.y += p.vy;
                     p.vy += 0.15;
                     p.rotation += p.rotationSpeed;
                 });
-                
+
                 if (elapsed < DURATION) {
                     confettiAnimationFrame = requestAnimationFrame(animate);
                 } else {
@@ -3047,7 +3049,7 @@
                     confettiAnimationFrame = null;
                 }
             }
-            
+
             confettiAnimationFrame = requestAnimationFrame(animate);
         }
 
@@ -3063,23 +3065,23 @@
                         el.addEventListener('change', renderReceiptPreview);
                     }
                 });
-            
+
             const customFrom = document.getElementById('customColorFrom');
             const customTo = document.getElementById('customColorTo');
             if (customFrom) customFrom.addEventListener('input', applyCustomColor);
             if (customTo) customTo.addEventListener('input', applyCustomColor);
-            
+
             const customFromHex = document.getElementById('customColorFromHex');
             const customToHex = document.getElementById('customColorToHex');
             if (customFromHex) customFromHex.addEventListener('input', () => syncCustomHex('from'));
             if (customToHex) customToHex.addEventListener('input', () => syncCustomHex('to'));
-            
+
             const addItemBtn = document.getElementById('addItemBtn');
             if (addItemBtn) addItemBtn.addEventListener('click', addItem);
-            
+
             const resetBtn = document.getElementById('resetDemoBtn');
             if (resetBtn) resetBtn.addEventListener('click', resetToDefault);
-            
+
             const downloadBtn = document.getElementById('downloadPNGBtn');
             if (downloadBtn) downloadBtn.addEventListener('click', downloadPNG);
         }
@@ -3093,10 +3095,10 @@
             const candidate = 'ORD-' + timestamp + rand;
             const el = document.getElementById('invoiceNumber');
             if (el) el.value = candidate;
-            
+
             const statusEl = document.getElementById('ordStatus');
             if (statusEl) statusEl.textContent = `✓ สร้างเลขใหม่เรียบร้อย`;
-            
+
             renderReceiptPreview();
             return candidate;
         }
@@ -3148,7 +3150,7 @@
         function clearSheetsLog() {
             const log = document.getElementById('sheetsLog');
             if (log) { log.innerHTML = ''; log.style.display = 'none'; }
-            
+
             const analyticsPreview = document.getElementById('analyticsPreview');
             if (analyticsPreview) analyticsPreview.style.display = 'none';
         }
@@ -3159,7 +3161,7 @@
             items.forEach(i => { subtotal += (Number(i.quantity) || 0) * (Number(i.unitPrice) || 0); });
             const tax = vatEnabled ? subtotal * 0.07 : 0;
             const total = subtotal + tax;
-            
+
             return {
                 companyName: document.getElementById('companyName')?.value || '',
                 taxId: document.getElementById('taxId')?.value || '',
@@ -3185,66 +3187,97 @@
             };
         }
 
-        async function fetchWithRetry(url, options, retries = 2) {
-            for (let i = 0; i <= retries; i++) {
-                try {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 15000);
-                    const response = await fetch(url, {
-                        ...options,
-                        signal: controller.signal,
-                        mode: 'no-cors'
-                    });
-                    clearTimeout(timeoutId);
-                    return response;
-                } catch (err) {
-                    console.warn(`Fetch attempt ${i + 1} failed:`, err.message);
-                    if (i === retries) throw err;
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+        async function fetchWithRetry(url, options = {}, retries = 2) {
+                for (let i = 0; i <= retries; i++) {
+                    try {
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+                        // Use no-cors for GET requests, cors for POST
+                        const fetchOptions = {
+                            ...options,
+                            signal: controller.signal,
+                            mode: options.method === 'POST' ? 'cors' : 'cors',
+                            credentials: 'omit',
+                            headers: {
+                                'Content-Type': options.method === 'POST' ? 'application/json' : 'text/plain',
+                                ...options.headers
+                            }
+                        };
+
+                        const response = await fetch(url, fetchOptions);
+                        clearTimeout(timeoutId);
+
+                        // For no-cors, response.ok might be false but data is there
+                        if (response.ok || response.type === 'opaque') {
+                            return response;
+                        }
+
+                        throw new Error(`HTTP ${response.status}`);
+                    } catch (err) {
+                        console.warn(`Fetch attempt ${i + 1} failed:`, err.message);
+                        if (i === retries) throw err;
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    }
                 }
             }
-        }
 
         async function sheetsTestConnection() {
-            logSheets('🔗 กำลังทดสอบการเชื่อมต่อ...');
-            const url = getSheetsUrl();
-            
-            if (!url) {
-                showToast('กรุณากรอก Apps Script URL ก่อน', 'warning');
-                return;
-            }
-            
-            if (!url.includes('/exec')) {
-                logSheets('⚠️ URL ควรลงท้ายด้วย /exec');
-                showToast('URL ควรลงท้ายด้วย /exec', 'warning');
-            }
-            
-            saveSheetsUrlToStorage(url);
-            
-            try {
-                const testUrl = addQueryParam(url, 'action', 'ping');
-                const res = await fetchWithRetry(testUrl, { method: 'GET' });
-                
-                if (res.ok) {
-                    const data = await res.json();
-                    setSheetsStatus(true, 'เชื่อมต่อแล้ว ✓');
-                    logSheets('✅ เชื่อมต่อ Google Sheets สำเร็จ: ' + (data.message || 'OK'));
-                    showToast('✅ เชื่อมต่อ Google Sheets สำเร็จ!', 'success');
-                } else {
-                    const text = await res.text();
-                    throw new Error(`HTTP ${res.status}: ${text.substring(0, 100)}`);
+                logSheets('🔗 กำลังทดสอบการเชื่อมต่อ...');
+                const url = getSheetsUrl();
+
+                if (!url) {
+                    showToast('กรุณากรอก Apps Script URL ก่อน', 'warning');
+                    return;
                 }
-            } catch (err) {
-                console.error('❌ Connection error:', err);
-                let errorMsg = err.message;
-                if (err.name === 'AbortError') errorMsg = 'การเชื่อมต่อหมดเวลา (15 วินาที)';
-                else if (err.message.includes('Failed to fetch')) errorMsg = 'ไม่สามารถเชื่อมต่อได้ - ตรวจสอบ URL และการตั้งค่า CORS';
-                
-                logSheets('❌ ทดสอบการเชื่อมต่อไม่สำเร็จ: ' + errorMsg);
-                setSheetsStatus(false, 'เชื่อมต่อไม่ได้');
-                showToast('❌ ไม่สามารถเชื่อมต่อได้: ' + errorMsg, 'error');
+
+                saveSheetsUrlToStorage(url);
+
+                try {
+                    // Try with JSONP first
+                    const callbackName = 'sheetsCallback_' + Date.now();
+
+                    const jsonpPromise = new Promise((resolve, reject) => {
+                        window[callbackName] = (data) => {
+                            delete window[callbackName];
+                            document.body.removeChild(script);
+                            resolve(data);
+                        };
+
+                        const script = document.createElement('script');
+                        script.src = `${url}?action=ping&callback=${callbackName}`;
+                        script.onerror = () => {
+                            delete window[callbackName];
+                            document.body.removeChild(script);
+                            reject(new Error('JSONP failed'));
+                        };
+                        document.body.appendChild(script);
+
+                        setTimeout(() => {
+                            if (window[callbackName]) {
+                                delete window[callbackName];
+                                document.body.removeChild(script);
+                                reject(new Error('Timeout'));
+                            }
+                        }, 10000);
+                    });
+
+                    const data = await jsonpPromise;
+
+                    if (data.status === 'success') {
+                        setSheetsStatus(true, 'เชื่อมต่อแล้ว ✓');
+                        logSheets('✅ เชื่อมต่อ Google Sheets สำเร็จ: ' + (data.message || 'OK'));
+                        showToast('✅ เชื่อมต่อ Google Sheets สำเร็จ!', 'success');
+                    } else {
+                        throw new Error(data.message || 'Connection failed');
+                    }
+                } catch (err) {
+                    console.error('Connection error:', err);
+                    logSheets('❌ ทดสอบการเชื่อมต่อไม่สำเร็จ: ' + err.message);
+                    setSheetsStatus(false, 'เชื่อมต่อไม่ได้');
+                    showToast('❌ ไม่สามารถเชื่อมต่อได้: ' + err.message, 'error');
+                }
             }
-        }
 
         async function sheetsSaveProfile() {
             const errors = validateForm();
@@ -3252,25 +3285,25 @@
                 showToast(errors[0], 'warning');
                 return;
             }
-            
+
             const url = getSheetsUrl();
             if (!url) {
                 showToast('กรุณากรอก Apps Script URL ก่อน', 'warning');
                 return;
             }
-            
+
             saveSheetsUrlToStorage(url);
             const data = collectProfileData();
-            
+
             logSheets('💾 กำลังบันทึกโปรไฟล์...');
-            
+
             try {
                 const res = await fetchWithRetry(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'saveProfile', data: data })
                 });
-                
+
                 if (res.ok) {
                     const result = await res.json();
                     showToast('💾 บันทึกโปรไฟล์สำเร็จ!', 'success');
@@ -3285,7 +3318,7 @@
                 let errorMsg = err.message;
                 if (err.name === 'AbortError') errorMsg = 'การเชื่อมต่อหมดเวลา';
                 else if (err.message.includes('Failed to fetch')) errorMsg = 'ไม่สามารถเชื่อมต่อได้ - ตรวจสอบ URL';
-                
+
                 logSheets('❌ ส่งข้อมูลไม่สำเร็จ: ' + errorMsg);
                 showToast('❌ ไม่สามารถบันทึกข้อมูลได้: ' + errorMsg, 'error');
             }
@@ -3297,15 +3330,15 @@
                 showToast('กรุณากรอก Apps Script URL ก่อน', 'warning');
                 return;
             }
-            
+
             saveSheetsUrlToStorage(url);
             logSheets('📥 กำลังโหลดข้อมูลล่าสุดจาก Sheets...');
-            
+
             try {
                 const loadUrl = addQueryParam(url, 'action', 'loadProfile');
                 const res = await fetchWithRetry(loadUrl, { method: 'GET' });
                 const text = await res.text();
-                
+
                 let result;
                 try {
                     result = JSON.parse(text);
@@ -3314,15 +3347,15 @@
                     showToast('รูปแบบข้อมูลไม่ถูกต้อง', 'error');
                     return;
                 }
-                
+
                 if (result.status === 'empty' || !result.data) {
                     logSheets('⚠ ไม่พบข้อมูล หรือโปรไฟล์ว่าง');
                     showToast('ไม่พบข้อมูลใน Google Sheets', 'warning');
                     return;
                 }
-                
+
                 const d = result.data;
-                
+
                 if (d.companyName !== undefined) { const el = document.getElementById('companyName'); if (el) el.value = d.companyName; }
                 if (d.taxId !== undefined) { const el = document.getElementById('taxId'); if (el) el.value = d.taxId; }
                 if (d.clientName !== undefined) { const el = document.getElementById('clientName'); if (el) el.value = d.clientName; }
@@ -3335,19 +3368,19 @@
                 if (d.accountName !== undefined) { const el = document.getElementById('accountName'); if (el) el.value = d.accountName; }
                 if (d.scanMessage1 !== undefined) { const el = document.getElementById('scanMessage1'); if (el) el.value = d.scanMessage1; }
                 if (d.scanMessage2 !== undefined) { const el = document.getElementById('scanMessage2'); if (el) el.value = d.scanMessage2; }
-                
+
                 if (d.vatEnabled !== undefined) {
                     vatEnabled = toBoolean(d.vatEnabled);
                     updateToggleUI('vat', vatEnabled);
                 }
-                
+
                 if (d.paymentEnabled !== undefined) {
                     paymentEnabled = toBoolean(d.paymentEnabled);
                     updateToggleUI('payment', paymentEnabled);
                     const section = document.getElementById('paymentSection');
                     if (section) section.style.display = paymentEnabled ? 'block' : 'none';
                 }
-                
+
                 if (d.items) {
                     try {
                         const parsed = typeof d.items === 'string' ? JSON.parse(d.items) : d.items;
@@ -3356,7 +3389,7 @@
                         console.warn('Failed to parse items:', e);
                     }
                 }
-                
+
                 renderAll();
                 setSheetsStatus(true, 'โหลดข้อมูลแล้ว ✓');
                 logSheets('✅ โหลดข้อมูลสำเร็จ');
@@ -3366,7 +3399,7 @@
                 let errorMsg = err.message;
                 if (err.name === 'AbortError') errorMsg = 'การเชื่อมต่อหมดเวลา';
                 else if (err.message.includes('Failed to fetch')) errorMsg = 'ไม่สามารถเชื่อมต่อได้';
-                
+
                 logSheets('❌ โหลดข้อมูลไม่สำเร็จ: ' + errorMsg);
                 showToast('❌ ไม่สามารถโหลดข้อมูลได้: ' + errorMsg, 'error');
             }
@@ -3378,14 +3411,14 @@
                 showToast('กรุณากรอก Apps Script URL ก่อน', 'warning');
                 return;
             }
-            
+
             logSheets('📊 กำลังดึงข้อมูล Analytics...');
-            
+
             try {
                 const analyticsUrl = addQueryParam(url, 'action', 'getAnalytics');
                 const res = await fetchWithRetry(analyticsUrl, { method: 'GET' });
                 const result = await res.json();
-                
+
                 if (result.status === 'success' && result.metrics) {
                     displayAnalytics(result.metrics);
                     logSheets('✅ โหลด Analytics สำเร็จ');
@@ -3401,24 +3434,24 @@
         function displayAnalytics(metrics) {
             const preview = document.getElementById('analyticsPreview');
             const stats = document.getElementById('analyticsStats');
-            
+
             if (!preview || !stats) return;
-            
+
             stats.innerHTML = `
                 <div class="analytics-stat-item">
                     <div class="analytics-stat-value">${metrics.totalReceipts || 0}</div>
                     <div class="analytics-stat-label">ใบเสร็จทั้งหมด</div>
                 </div>
                 <div class="analytics-stat-item">
-                    <div class="analytics-stat-value">฿${(metrics.totalRevenue || 0).toLocaleString('th-TH', {minimumFractionDigits: 0})}</div>
+                    <div class="analytics-stat-value">฿${(metrics.totalRevenue || 0).toLocaleString('th-TH', { minimumFractionDigits: 0 })}</div>
                     <div class="analytics-stat-label">รายได้รวม</div>
                 </div>
                 <div class="analytics-stat-item">
-                    <div class="analytics-stat-value">฿${(metrics.averageReceiptValue || 0).toLocaleString('th-TH', {minimumFractionDigits: 0})}</div>
+                    <div class="analytics-stat-value">฿${(metrics.averageReceiptValue || 0).toLocaleString('th-TH', { minimumFractionDigits: 0 })}</div>
                     <div class="analytics-stat-label">เฉลี่ย/ใบเสร็จ</div>
                 </div>
             `;
-            
+
             preview.style.display = 'block';
         }
 
@@ -3427,30 +3460,30 @@
         // ============================================
         function init() {
             loadSheetsUrlFromStorage();
-            
+
             const issueDate = document.getElementById('issueDate');
             if (issueDate && !issueDate.value) issueDate.value = new Date().toISOString().slice(0, 10);
-            
+
             const invEl = document.getElementById('invoiceNumber');
             if (invEl && !invEl.value) generateOrderNumber();
-            
+
             initColorSwatches();
             initFontPicker();
             applyFont('Sarabun');
-            
+
             renderAll();
             setupItemsContainerListener();
             setupEventListeners();
-            
+
             initLogoUpload();
             initQrUpload();
-            
+
             const urlInput = document.getElementById('sheetsWebhookUrl');
             if (urlInput) {
                 urlInput.addEventListener('change', () => saveSheetsUrlToStorage(urlInput.value));
                 urlInput.addEventListener('blur', () => saveSheetsUrlToStorage(urlInput.value));
             }
-            
+
             document.querySelectorAll('.toggle-switch').forEach(toggle => {
                 toggle.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
@@ -3459,11 +3492,11 @@
                     }
                 });
             });
-            
+
             // Initial validation check
             const errorEl = document.getElementById('itemsValidationError');
             if (errorEl) errorEl.style.display = 'none';
-            
+
             console.log('✅ Quick Receipt V.3 initialized - 10/10 Ready');
         }
 
