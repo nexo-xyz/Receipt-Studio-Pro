@@ -14,7 +14,7 @@
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-    <!-- Fonts - โหลดทุกฟอนต์ที่จำเป็น -->
+    <!-- Fonts -->
     <link
         href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;500;600;700&family=Athiti:wght@300;400;500;600;700&family=Bai+Jamjuree:wght@300;400;500;600;700&family=Chakra+Petch:wght@300;400;500;600;700&family=Charm:wght@400;700&family=Charmonman:wght@400;700&family=Chulabhorn+Likit+Display:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Itim&family=Kanit:wght@300;400;500;600;700&family=Kodchasan:wght@300;400;500;600;700&family=Krub:wght@300;400;500;600;700&family=Mali:wght@300;400;500;600;700&family=Mitr:wght@300;400;500;600;700&family=Niramit:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Pattaya&family=Pridi:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&family=Sriracha&family=Taviraj:wght@300;400;500;600;700&family=Thasadith:wght@400;700&family=Trirong:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
@@ -45,10 +45,7 @@
             --warning: #f59e0b;
             --error: #ef4444;
             --info: #3b82f6;
-
-            /* ฟอนต์หลักสำหรับทุกส่วน */
             --global-font: 'Sarabun', sans-serif;
-
             --container-padding: clamp(16px, 5vw, 40px);
             --card-padding: clamp(20px, 4vw, 32px);
         }
@@ -127,7 +124,7 @@
             }
         }
 
-        /* Glass Morphism Cards - Bento Grid Style */
+        /* Glass Morphism Cards */
         .glass-card {
             background: var(--surface);
             border: 1px solid var(--border-subtle);
@@ -207,7 +204,7 @@
             color: #a1a1aa;
         }
 
-        /* Modern Buttons - Monochromatic */
+        /* Modern Buttons */
         .btn-primary {
             background: #ffffff;
             color: #09090b;
@@ -282,7 +279,7 @@
             transform: translateY(-1px);
         }
 
-        /* Item Row - Bento Style */
+        /* Item Row */
         .item-row {
             display: grid;
             grid-template-columns: 1fr 60px 100px 32px;
@@ -374,9 +371,7 @@
             box-shadow: 0 32px 72px rgba(0, 0, 0, 0.5);
         }
 
-        /* ============================================ */
-        /* PAGE VIEW SYSTEM */
-        /* ============================================ */
+        /* Page View System */
         .page-view {
             display: none;
             opacity: 0;
@@ -426,11 +421,7 @@
             border: 1px solid #52525b;
         }
 
-        .nav-tab i {
-            font-size: 18px;
-        }
-
-        /* Welcome / Onboarding Page Styles */
+        /* Feature Grid */
         .feature-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -550,7 +541,6 @@
             box-shadow: 0 0 0 2px rgba(161, 161, 170, 0.2);
         }
 
-        /* Font Category */
         .font-category {
             margin-bottom: 16px;
         }
@@ -570,7 +560,7 @@
             gap: 8px;
         }
 
-        /* Toggle Switch with Accessibility */
+        /* Toggle Switch */
         .toggle-switch {
             width: clamp(40px, 8vw, 48px);
             height: clamp(22px, 5vw, 26px);
@@ -644,7 +634,7 @@
             animation: pulse-glow 2s ease-in-out infinite;
         }
 
-        /* Stats Cards - Bento Grid Style */
+        /* Stats Cards */
         .stat-card {
             background: var(--surface);
             border: 1.5px solid var(--border-subtle);
@@ -743,9 +733,7 @@
             color: #a1a1aa;
         }
 
-        /* ============================================ */
-        /* UPLOAD SECTION */
-        /* ============================================ */
+        /* Upload Section */
         .upload-tab-container {
             display: flex;
             gap: 8px;
@@ -779,10 +767,6 @@
             color: var(--text-primary);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             border: 1px solid #52525b;
-        }
-
-        .upload-tab-btn i {
-            font-size: 14px;
         }
 
         .upload-dropzone {
@@ -859,10 +843,6 @@
             color: #ffffff;
         }
 
-        .url-action-btn i {
-            font-size: 12px;
-        }
-
         .url-status-text {
             font-size: 11px;
             color: var(--text-dim);
@@ -870,7 +850,7 @@
             min-height: 18px;
         }
 
-        /* Sheets Log Clear Button */
+        /* Sheets Log */
         .sheets-log-header {
             display: flex;
             align-items: center;
@@ -894,7 +874,7 @@
             color: var(--text-primary);
         }
 
-        /* QR Preview in Payment Section */
+        /* QR Preview */
         .qr-preview-container {
             display: flex;
             align-items: center;
@@ -940,10 +920,7 @@
             margin-bottom: 8px;
         }
 
-        /* ============================================ */
-        /* RESPONSIVE DESIGN */
-        /* ============================================ */
-
+        /* Responsive Design */
         .main-grid {
             display: grid;
             grid-template-columns: 1.1fr 0.9fr;
@@ -1025,6 +1002,7 @@
                 grid-template-columns: 1fr;
                 gap: 10px;
                 padding: 12px;
+                position: relative;
             }
 
             .item-row .price-wrapper {
@@ -1035,10 +1013,6 @@
                 position: absolute;
                 top: 8px;
                 right: 8px;
-            }
-
-            .item-row {
-                position: relative;
             }
         }
 
@@ -1101,7 +1075,7 @@
             }
         }
 
-        /* Accessibility Focus Styles */
+        /* Accessibility */
         button:focus-visible,
         input:focus-visible,
         textarea:focus-visible,
@@ -1121,7 +1095,7 @@
     <!-- Main Container -->
     <div style="max-width: 1440px; margin: 0 auto; padding: var(--container-padding); position: relative; z-index: 1;">
 
-        <!-- Header - Minimalist Style -->
+        <!-- Header -->
         <div class="animate-up" style="text-align: left; margin-bottom: clamp(32px, 6vw, 48px);">
             <div class="badge-pill" style="margin-bottom: 16px;">
                 <span
@@ -1150,13 +1124,10 @@
             </button>
         </div>
 
-        <!-- ============================================ -->
-        <!-- PAGE 1: WELCOME / ONBOARDING -->
-        <!-- ============================================ -->
+        <!-- PAGE 1: WELCOME -->
         <div id="pageWelcome" class="page-view active">
             <div class="glass-card animate-up" style="padding: var(--card-padding);">
                 <div style="max-width: 900px; margin: 0 auto;">
-                    <!-- Welcome Message -->
                     <div style="text-align: center; margin-bottom: 40px;">
                         <div
                             style="font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; margin-bottom: 16px; color: var(--text-primary);">
@@ -1169,7 +1140,6 @@
                         </p>
                     </div>
 
-                    <!-- Why Choose Us -->
                     <div style="margin-bottom: 40px;">
                         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
                             <div class="section-header-icon">
@@ -1194,8 +1164,7 @@
                                     <i class="bi bi-grid-3x3-gap-fill"></i>
                                 </div>
                                 <div class="feature-title">ฟอนต์ไทยครบทุกแบบ</div>
-                                <div class="feature-desc">รองรับฟอนต์ไทยทั้งหมดจาก Google Fonts ให้เลือกกว่า 25 แบบ
-                                </div>
+                                <div class="feature-desc">รองรับฟอนต์ไทยทั้งหมดจาก Google Fonts ให้เลือกกว่า 25 แบบ</div>
                             </div>
                             <div class="feature-card">
                                 <div class="feature-icon">
@@ -1214,7 +1183,6 @@
                         </div>
                     </div>
 
-                    <!-- How to Use -->
                     <div style="margin-bottom: 40px;">
                         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
                             <div class="section-header-icon">
@@ -1258,58 +1226,6 @@
                         </div>
                     </div>
 
-                    <!-- Features Highlight -->
-                    <div style="margin-bottom: 32px;">
-                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
-                            <div class="section-header-icon">
-                                <i class="bi bi-trophy-fill"></i>
-                            </div>
-                            <h3
-                                style="font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: var(--text-primary);">
-                                ระบบของเราดียังไง?
-                            </h3>
-                        </div>
-
-                        <div
-                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
-                            <div
-                                style="padding: 20px; background: #18181b; border-radius: 16px; border: 1.5px solid #2a2a2e;">
-                                <div style="font-size: 24px; margin-bottom: 12px;"><i class="bi bi-gift-fill"></i></div>
-                                <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">ใช้งานฟรี
-                                    100%</div>
-                                <div style="font-size: 13px; color: var(--text-dim);">ไม่มีค่าใช้จ่ายแอบแฝง
-                                    ดาวน์โหลดได้ไม่จำกัด</div>
-                            </div>
-                            <div
-                                style="padding: 20px; background: #18181b; border-radius: 16px; border: 1.5px solid #2a2a2e;">
-                                <div style="font-size: 24px; margin-bottom: 12px;"><i
-                                        class="bi bi-shield-lock-fill"></i></div>
-                                <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">
-                                    ความเป็นส่วนตัวสูง</div>
-                                <div style="font-size: 13px; color: var(--text-dim);">ทุกอย่างทำงานบนเบราว์เซอร์คุณ
-                                    ไม่มีการอัปโหลดข้อมูล</div>
-                            </div>
-                            <div
-                                style="padding: 20px; background: #18181b; border-radius: 16px; border: 1.5px solid #2a2a2e;">
-                                <div style="font-size: 24px; margin-bottom: 12px;"><i class="bi bi-phone-fill"></i>
-                                </div>
-                                <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">
-                                    รองรับทุกอุปกรณ์</div>
-                                <div style="font-size: 13px; color: var(--text-dim);">ใช้งานได้ทั้งมือถือ แท็บเล็ต
-                                    และคอมพิวเตอร์</div>
-                            </div>
-                            <div
-                                style="padding: 20px; background: #18181b; border-radius: 16px; border: 1.5px solid #2a2a2e;">
-                                <div style="font-size: 24px; margin-bottom: 12px;"><i class="bi bi-table"></i></div>
-                                <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">เชื่อมต่อ
-                                    Google Sheets</div>
-                                <div style="font-size: 13px; color: var(--text-dim);">บันทึกข้อมูลอัตโนมัติ
-                                    ดูประวัติได้ง่าย</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- CTA Button -->
                     <div style="text-align: center; padding-top: 20px;">
                         <button class="btn-primary pulse-glow" onclick="switchPage('builder')"
                             style="padding: 16px 40px; font-size: 16px;">
@@ -1321,16 +1237,12 @@
             </div>
         </div>
 
-        <!-- ============================================ -->
-        <!-- PAGE 2: BUILDER (ใบเสร็จ) -->
-        <!-- ============================================ -->
+        <!-- PAGE 2: BUILDER -->
         <div id="pageBuilder" class="page-view">
-            <!-- Main Grid - Bento Style -->
             <div class="main-grid">
 
                 <!-- Left Panel - Controls -->
                 <div class="glass-card animate-up" style="padding: var(--card-padding);">
-                    <!-- Panel Header -->
                     <div
                         style="display: flex; align-items: center; gap: 12px; margin-bottom: clamp(24px, 5vw, 32px); padding-bottom: clamp(20px, 4vw, 24px); border-bottom: 1.5px solid var(--border-subtle);">
                         <div class="section-header-icon">
@@ -1348,7 +1260,6 @@
                             style="margin-left: auto; background: #27272a; color: #a1a1aa; border-color: #3f3f46;">เรียลไทม์</span>
                     </div>
 
-                    <!-- Form Sections -->
                     <div style="display: flex; flex-direction: column; gap: clamp(20px, 4vw, 28px);">
 
                         <!-- Business Section -->
@@ -1388,7 +1299,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Logo Tabs -->
                                 <div class="upload-tab-container">
                                     <button id="logoTabUpload" onclick="switchLogoTab('upload')"
                                         class="upload-tab-btn active">
@@ -1401,7 +1311,6 @@
                                     </button>
                                 </div>
 
-                                <!-- Upload Panel -->
                                 <div id="logoPanelUpload">
                                     <label id="logoDropZone" class="upload-dropzone">
                                         <i class="bi bi-cloud-arrow-up"></i>
@@ -1412,7 +1321,6 @@
                                     </label>
                                 </div>
 
-                                <!-- URL Panel -->
                                 <div id="logoPanelUrl" style="display: none;">
                                     <div class="url-input-group">
                                         <input id="logoUrlInput" class="field" type="url"
@@ -1519,7 +1427,6 @@
                                 </button>
                             </div>
 
-                            <!-- Column Headers -->
                             <div
                                 style="display: grid; grid-template-columns: 1fr 60px 100px 32px; gap: 10px; padding: 0 12px; margin-bottom: 10px;">
                                 <span
@@ -1541,11 +1448,8 @@
                                 aria-label="หมายเหตุ">ขอบคุณที่เลือกใช้บริการ Quick Receipt กรุณาชำระภายใน 15 วัน</textarea>
                         </div>
 
-                        <!-- ============================================ -->
-                        <!-- PAYMENT SECTION -->
-                        <!-- ============================================ -->
+                        <!-- Payment Section -->
                         <div>
-                            <!-- Payment Toggle Card -->
                             <div
                                 style="display: flex; align-items: center; justify-content: space-between; padding: 18px; background: #18181b; border: 1.5px solid #2a2a2e; border-radius: 18px; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
                                 <div style="display: flex; align-items: center; gap: 14px;">
@@ -1572,11 +1476,9 @@
                                 </div>
                             </div>
 
-                            <!-- Payment Details Section -->
                             <div id="paymentSection" style="display: block;">
                                 <div
                                     style="padding: 18px; background: #18181b; border: 1.5px solid #2a2a2e; border-radius: 18px;">
-
                                     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
                                         <div class="section-header-icon">
                                             <i class="bi bi-bank"></i>
@@ -1716,8 +1618,7 @@
                                 <div style="flex:1;">
                                     <div
                                         style="font-size: clamp(13px, 3vw, 14px); font-weight: 700; color: var(--text-primary);">
-                                        Google
-                                        Sheets</div>
+                                        Google Sheets</div>
                                     <div style="font-size: 11px; color: var(--text-dim);">บันทึกข้อมูลอัตโนมัติ</div>
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 8px;">
@@ -1805,7 +1706,7 @@
                                 </div>
                             </div>
 
-                            <!-- Font Picker - เลือกฟอนต์เดียวใช้ทั้งหมด -->
+                            <!-- Font Picker -->
                             <div style="margin-top: 18px;">
                                 <label class="field-label">ฟอนต์สำหรับ<span>ทั้งหมด</span></label>
                                 <div class="font-category">
@@ -1853,7 +1754,6 @@
                         </button>
                     </div>
 
-                    <!-- Receipt Preview Container -->
                     <div style="display: flex; justify-content: center; padding: 12px 0; flex: 1; overflow: hidden;">
                         <div style="width: 100%; max-width: 460px;">
                             <div id="receiptCapture" class="receipt-wrap"></div>
@@ -1867,7 +1767,7 @@
                 </div>
             </div>
 
-            <!-- Stats Grid - Bento Cards -->
+            <!-- Stats Grid -->
             <div class="stat-grid">
                 <div class="stat-card animate-up">
                     <div class="section-header-icon" style="width: 48px; height: 48px; border-radius: 14px;">
@@ -1934,7 +1834,6 @@
         // ============================================
         // SECURITY UTILITIES
         // ============================================
-
         function sanitizeImageUrl(url) {
             if (!url) return '';
             if (url.startsWith('data:image/')) {
@@ -2011,14 +1910,11 @@
         }
 
         function addQueryParam(url, key, value) {
-            try {
-                const urlObj = new URL(url);
-                urlObj.searchParams.set(key, value);
-                return urlObj.toString();
-            } catch (e) {
-                const separator = url.includes('?') ? '&' : '?';
-                return url + separator + encodeURIComponent(key) + '=' + encodeURIComponent(value);
-            }
+            const hashIndex = url.indexOf('#');
+            const hash = hashIndex !== -1 ? url.slice(hashIndex) : '';
+            const baseUrl = hashIndex !== -1 ? url.slice(0, hashIndex) : url;
+            const separator = baseUrl.includes('?') ? '&' : '?';
+            return baseUrl + separator + encodeURIComponent(key) + '=' + encodeURIComponent(value) + hash;
         }
 
         function showToast(message, type = 'info') {
@@ -2127,8 +2023,7 @@
 
             const proxies = [
                 `https://api.allorigins.win/raw?url=${encodeURIComponent(sanitizedUrl)}`,
-                `https://corsproxy.io/?${encodeURIComponent(sanitizedUrl)}`,
-                `https://cors-anywhere.herokuapp.com/${sanitizedUrl}`
+                `https://corsproxy.io/?${encodeURIComponent(sanitizedUrl)}`
             ];
 
             for (const proxy of proxies) {
@@ -2151,7 +2046,6 @@
                     });
                 } catch (e) { continue; }
             }
-            if (sanitizedUrl.startsWith('https://')) return sanitizedUrl;
             throw new Error('ไม่สามารถโหลดรูปภาพได้');
         }
 
@@ -2203,126 +2097,126 @@
                 const price = Number(item.unitPrice) || 0;
                 const amt = qty * price;
                 rowsHtml += `
-            <tr style="border-bottom: 1px solid #f3f4f6;">
-                <td style="padding: 10px 8px; font-size: 13px; color: #374151;">${escapeHtml(item.description)}</td>
-                <td style="padding: 10px 8px; font-size: 13px; text-align: center; color: #6b7280;">${qty}</td>
-                <td style="padding: 10px 8px; font-size: 13px; text-align: right; color: #6b7280;">฿${price.toFixed(2)}</td>
-                <td style="padding: 10px 8px; font-size: 13px; text-align: right; color: #111827; font-weight: 600;">฿${amt.toFixed(2)}</td>
-            </tr>
-        `;
+                    <tr style="border-bottom: 1px solid #f3f4f6;">
+                        <td style="padding: 10px 8px; font-size: 13px; color: #374151;">${escapeHtml(item.description)}</td>
+                        <td style="padding: 10px 8px; font-size: 13px; text-align: center; color: #6b7280;">${qty}</td>
+                        <td style="padding: 10px 8px; font-size: 13px; text-align: right; color: #6b7280;">฿${price.toFixed(2)}</td>
+                        <td style="padding: 10px 8px; font-size: 13px; text-align: right; color: #111827; font-weight: 600;">฿${amt.toFixed(2)}</td>
+                    </tr>
+                `;
             });
 
             let paymentHtml = '';
             if (paymentEnabled) {
                 paymentHtml = `
-            <div style="margin-top: 20px; padding: 16px; background: #f9fafb; border-radius: 16px; border: 1px solid #e5e7eb;">
-                <div style="font-size: 13px; font-weight: 700; color: #374151; margin-bottom: 12px; letter-spacing: 0.06em; text-transform: uppercase;">
-                    <i class="bi bi-credit-card" style="margin-right: 6px;"></i>ช่องทางการชำระเงิน
-                </div>
-                
-                ${bankName || accountNumber || accountName ? `
-                <div style="margin-bottom: 14px; padding: 12px; background: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb;">
-                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">โอนเงินเข้าบัญชี</div>
-                    <div style="font-size: 14px; font-weight: 600; color: #111827;">${escapeHtml(bankName)}</div>
-                    <div style="font-size: 13px; color: #374151; margin-top: 2px;">${escapeHtml(accountName)}</div>
-                    <div style="font-size: 15px; font-weight: 700; color: ${escapeHtml(activeFrom)}; margin-top: 4px; letter-spacing: 0.02em;">${escapeHtml(accountNumber)}</div>
-                </div>
-                ` : ''}
-                
-                ${qrBase64 ? `
-                <div style="display: flex; align-items: center; gap: 16px;">
-                    <div style="width: 90px; height: 90px; border-radius: 12px; background: #ffffff; border: 1.5px solid #e5e7eb; overflow: hidden; flex-shrink: 0;">
-                        <img src="${qrBase64}" style="width: 100%; height: 100%; object-fit: contain;" alt="QR Code">
+                    <div style="margin-top: 20px; padding: 16px; background: #f9fafb; border-radius: 16px; border: 1px solid #e5e7eb;">
+                        <div style="font-size: 13px; font-weight: 700; color: #374151; margin-bottom: 12px; letter-spacing: 0.06em; text-transform: uppercase;">
+                            <i class="bi bi-credit-card" style="margin-right: 6px;"></i>ช่องทางการชำระเงิน
+                        </div>
+                        
+                        ${bankName || accountNumber || accountName ? `
+                        <div style="margin-bottom: 14px; padding: 12px; background: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb;">
+                            <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">โอนเงินเข้าบัญชี</div>
+                            <div style="font-size: 14px; font-weight: 600; color: #111827;">${escapeHtml(bankName)}</div>
+                            <div style="font-size: 13px; color: #374151; margin-top: 2px;">${escapeHtml(accountName)}</div>
+                            <div style="font-size: 15px; font-weight: 700; color: ${escapeHtml(activeFrom)}; margin-top: 4px; letter-spacing: 0.02em;">${escapeHtml(accountNumber)}</div>
+                        </div>
+                        ` : ''}
+                        
+                        ${qrBase64 ? `
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            <div style="width: 90px; height: 90px; border-radius: 12px; background: #ffffff; border: 1.5px solid #e5e7eb; overflow: hidden; flex-shrink: 0;">
+                                <img src="${qrBase64}" style="width: 100%; height: 100%; object-fit: contain;" alt="QR Code">
+                            </div>
+                            <div>
+                                <div style="font-size: 13px; font-weight: 600; color: #111827; margin-bottom: 4px;">${escapeHtml(scanMessage1)}</div>
+                                <div style="font-size: 11px; color: #6b7280;">${escapeHtml(scanMessage2)}</div>
+                            </div>
+                        </div>
+                        ` : ''}
                     </div>
-                    <div>
-                        <div style="font-size: 13px; font-weight: 600; color: #111827; margin-bottom: 4px;">${escapeHtml(scanMessage1)}</div>
-                        <div style="font-size: 11px; color: #6b7280;">${escapeHtml(scanMessage2)}</div>
-                    </div>
-                </div>
-                ` : ''}
-            </div>
-        `;
+                `;
             }
 
             const receiptHtml = `
-        <div style="font-family: '${escapeHtml(currentFont)}', sans-serif; background: #fff; border-radius: 20px; overflow: hidden;">
-            <div style="background: ${grad}; padding: 24px 24px 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;">
-                    <div style="display: flex; align-items: center; gap: 16px;">
-                        ${logoBase64 ? `
-                            <div style="width: 60px; height: 60px; border-radius: 12px; background: rgba(255,255,255,0.2); overflow: hidden; flex-shrink: 0;">
-                                <img src="${logoBase64}" style="width: 100%; height: 100%; object-fit: contain;" alt="Logo" crossorigin="anonymous">
+                <div style="font-family: '${escapeHtml(currentFont)}', sans-serif; background: #fff; border-radius: 20px; overflow: hidden;">
+                    <div style="background: ${grad}; padding: 24px 24px 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;">
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                ${logoBase64 ? `
+                                    <div style="width: 60px; height: 60px; border-radius: 12px; background: rgba(255,255,255,0.2); overflow: hidden; flex-shrink: 0;">
+                                        <img src="${logoBase64}" style="width: 100%; height: 100%; object-fit: contain;" alt="Logo" crossorigin="anonymous">
+                                    </div>
+                                ` : ''}
+                                <div>
+                                    <div style="font-size: 22px; font-weight: 800; color: ${escapeHtml(hdrText)}; letter-spacing: -0.02em;">${escapeHtml(company)}</div>
+                                    <div style="font-size: 12px; color: ${isLightColor(activeFrom) ? 'rgba(30,30,50,0.55)' : 'rgba(255,255,255,0.7)'}; margin-top: 4px;">TAX ID: ${escapeHtml(taxId)}</div>
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: ${isLightColor(activeFrom) ? 'rgba(30,30,50,0.45)' : 'rgba(255,255,255,0.65)'}; text-transform: uppercase;">Invoice</div>
+                                <div style="font-size: 18px; font-weight: 800; color: ${escapeHtml(hdrText)};">#${escapeHtml(invoiceNum)}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="padding: 20px 24px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                            <div>
+                                <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: ${escapeHtml(activeFrom)}; margin-bottom: 6px;">ออกให้กับ</div>
+                                <div style="font-size: 15px; font-weight: 600; color: #111827;">${escapeHtml(client)}</div>
+                                <div style="font-size: 13px; color: #9ca3af; margin-top: 2px;">${escapeHtml(clientEmail)}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 13px; color: #6b7280;"><span style="font-weight: 600; color: #374151;">วันที่ออก:</span> ${escapeHtml(issueDate)}</div>
+                            </div>
+                        </div>
+                        
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #f9fafb;">
+                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 700; text-align: left; color: #6b7280; letter-spacing: 0.08em; text-transform: uppercase;">รายละเอียด</th>
+                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 700; text-align: center; color: #6b7280; letter-spacing: 0.08em; text-transform: uppercase;">จำนวน</th>
+                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 700; text-align: right; color: #6b7280; letter-spacing: 0.08em; text-transform: uppercase;">ราคา/หน่วย</th>
+                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 700; text-align: right; color: #6b7280; letter-spacing: 0.08em; text-transform: uppercase;">รวม</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rowsHtml || '<tr><td colspan="4" style="text-align: center; padding: 20px; color: #d1d5db; font-size: 13px;">ยังไม่มีรายการสินค้า</td></tr>'}
+                            </tbody>
+                        </table>
+                        
+                        <div style="border-top: 1.5px solid #e5e7eb; margin-top: 16px; padding-top: 16px; display: flex; justify-content: flex-end;">
+                            <div style="min-width: 200px;">
+                                <div style="display: flex; justify-content: space-between; font-size: 14px; color: #6b7280; padding: 4px 0;">
+                                    <span>ยอดรวม</span><span>฿${subtotal.toFixed(2)}</span>
+                                </div>
+                                ${vatEnabled ? `
+                                    <div style="display: flex; justify-content: space-between; font-size: 14px; color: #6b7280; padding: 4px 0;">
+                                        <span>ภาษีมูลค่าเพิ่ม (7%)</span><span>฿${tax.toFixed(2)}</span>
+                                    </div>
+                                ` : ''}
+                                <div style="display: flex; justify-content: space-between; font-size: 16px; font-weight: 800; color: ${escapeHtml(activeFrom)}; padding: 8px 0 0; border-top: 2px solid ${escapeHtml(activeFrom)}40; margin-top: 6px;">
+                                    <span>ยอดสุทธิ</span><span>฿${total.toFixed(2)}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        ${notes ? `
+                            <div style="margin-top: 16px; padding: 12px 14px; background: #f9fafb; border-radius: 12px; border-left: 3px solid ${escapeHtml(activeFrom)}; font-size: 13px; color: #6b7280; line-height: 1.6;">
+                                <span style="font-weight: 600; color: #374151;">หมายเหตุ: </span>${escapeHtml(notes)}
                             </div>
                         ` : ''}
-                        <div>
-                            <div style="font-size: 22px; font-weight: 800; color: ${escapeHtml(hdrText)}; letter-spacing: -0.02em;">${escapeHtml(company)}</div>
-                            <div style="font-size: 12px; color: ${isLightColor(activeFrom) ? 'rgba(30,30,50,0.55)' : 'rgba(255,255,255,0.7)'}; margin-top: 4px;">TAX ID: ${escapeHtml(taxId)}</div>
-                        </div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: ${isLightColor(activeFrom) ? 'rgba(30,30,50,0.45)' : 'rgba(255,255,255,0.65)'}; text-transform: uppercase;">Invoice</div>
-                        <div style="font-size: 18px; font-weight: 800; color: ${escapeHtml(hdrText)};">#${escapeHtml(invoiceNum)}</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div style="padding: 20px 24px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-                    <div>
-                        <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: ${escapeHtml(activeFrom)}; margin-bottom: 6px;">ออกให้กับ</div>
-                        <div style="font-size: 15px; font-weight: 600; color: #111827;">${escapeHtml(client)}</div>
-                        <div style="font-size: 13px; color: #9ca3af; margin-top: 2px;">${escapeHtml(clientEmail)}</div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-size: 13px; color: #6b7280;"><span style="font-weight: 600; color: #374151;">วันที่ออก:</span> ${escapeHtml(issueDate)}</div>
-                    </div>
-                </div>
-                
-                <table style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr style="background: #f9fafb;">
-                            <th style="padding: 10px 8px; font-size: 12px; font-weight: 700; text-align: left; color: #6b7280; letter-spacing: 0.08em; text-transform: uppercase;">รายละเอียด</th>
-                            <th style="padding: 10px 8px; font-size: 12px; font-weight: 700; text-align: center; color: #6b7280; letter-spacing: 0.08em; text-transform: uppercase;">จำนวน</th>
-                            <th style="padding: 10px 8px; font-size: 12px; font-weight: 700; text-align: right; color: #6b7280; letter-spacing: 0.08em; text-transform: uppercase;">ราคา/หน่วย</th>
-                            <th style="padding: 10px 8px; font-size: 12px; font-weight: 700; text-align: right; color: #6b7280; letter-spacing: 0.08em; text-transform: uppercase;">รวม</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${rowsHtml || '<tr><td colspan="4" style="text-align: center; padding: 20px; color: #d1d5db; font-size: 13px;">ยังไม่มีรายการสินค้า</td></tr>'}
-                    </tbody>
-                </table>
-                
-                <div style="border-top: 1.5px solid #e5e7eb; margin-top: 16px; padding-top: 16px; display: flex; justify-content: flex-end;">
-                    <div style="min-width: 200px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 14px; color: #6b7280; padding: 4px 0;">
-                            <span>ยอดรวม</span><span>฿${subtotal.toFixed(2)}</span>
-                        </div>
-                        ${vatEnabled ? `
-                            <div style="display: flex; justify-content: space-between; font-size: 14px; color: #6b7280; padding: 4px 0;">
-                                <span>ภาษีมูลค่าเพิ่ม (7%)</span><span>฿${tax.toFixed(2)}</span>
-                            </div>
-                        ` : ''}
-                        <div style="display: flex; justify-content: space-between; font-size: 16px; font-weight: 800; color: ${escapeHtml(activeFrom)}; padding: 8px 0 0; border-top: 2px solid ${escapeHtml(activeFrom)}40; margin-top: 6px;">
-                            <span>ยอดสุทธิ</span><span>฿${total.toFixed(2)}</span>
+                        
+                        ${paymentHtml}
+                        
+                        <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 11px; color: #d1d5db; letter-spacing: 0.06em;">✦ Quick Receipt V.2</span>
+                            <span style="font-size: 11px; color: #d1d5db; letter-spacing: 0.06em;">สร้างด้วย Nexo ⚡</span>
                         </div>
                     </div>
                 </div>
-                
-                ${notes ? `
-                    <div style="margin-top: 16px; padding: 12px 14px; background: #f9fafb; border-radius: 12px; border-left: 3px solid ${escapeHtml(activeFrom)}; font-size: 13px; color: #6b7280; line-height: 1.6;">
-                        <span style="font-weight: 600; color: #374151;">หมายเหตุ: </span>${escapeHtml(notes)}
-                    </div>
-                ` : ''}
-                
-                ${paymentHtml}
-                
-                <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 11px; color: #d1d5db; letter-spacing: 0.06em;">✦ Quick Receipt V.2</span>
-                    <span style="font-size: 11px; color: #d1d5db; letter-spacing: 0.06em;">สร้างด้วย Nexo ⚡</span>
-                </div>
-            </div>
-        </div>
-    `;
+            `;
 
             const captureEl = document.getElementById('receiptCapture');
             if (captureEl) captureEl.innerHTML = receiptHtml;
@@ -2337,14 +2231,14 @@
                 row.className = 'item-row';
                 row.dataset.index = idx;
                 row.innerHTML = `
-            <input class="field item-desc" type="text" value="${escapeHtml(item.description)}" placeholder="รายละเอียด" aria-label="รายละเอียดรายการที่ ${idx + 1}">
-            <input class="field item-qty" type="number" step="1" min="0" value="${item.quantity}" style="text-align: center;" aria-label="จำนวน">
-            <div class="price-wrapper">
-                <span class="currency">฿</span>
-                <input class="field item-price" type="number" step="0.01" min="0" value="${item.unitPrice.toFixed(2)}" style="text-align: right;" aria-label="ราคาต่อหน่วย">
-            </div>
-            <button class="remove-btn" aria-label="ลบรายการ" data-index="${idx}"><i class="bi bi-x-lg"></i></button>
-        `;
+                    <input class="field item-desc" type="text" value="${escapeHtml(item.description)}" placeholder="รายละเอียด" aria-label="รายละเอียดรายการที่ ${idx + 1}">
+                    <input class="field item-qty" type="number" step="1" min="0" value="${item.quantity}" style="text-align: center;" aria-label="จำนวน">
+                    <div class="price-wrapper">
+                        <span class="currency">฿</span>
+                        <input class="field item-price" type="number" step="0.01" min="0" value="${item.unitPrice.toFixed(2)}" style="text-align: right;" aria-label="ราคาต่อหน่วย">
+                    </div>
+                    <button class="remove-btn" aria-label="ลบรายการ" data-index="${idx}"><i class="bi bi-x-lg"></i></button>
+                `;
                 container.appendChild(row);
             });
         }
@@ -2935,7 +2829,6 @@
         function saveSheetsUrlToStorage(url) {
             try {
                 localStorage.setItem('receiptforge_sheets_url', url);
-                console.log('📝 Saved URL to localStorage');
             } catch (e) {
                 console.warn('Cannot save to localStorage:', e);
             }
@@ -2947,7 +2840,6 @@
                 if (saved) {
                     const input = document.getElementById('sheetsWebhookUrl');
                     if (input) input.value = saved;
-                    console.log('📂 Loaded URL from localStorage');
                 }
             } catch (e) {
                 console.warn('Cannot load from localStorage:', e);
@@ -2992,8 +2884,8 @@
                 vatEnabled: vatEnabled,
                 paymentEnabled: paymentEnabled,
                 items: JSON.stringify(items),
-                logoBase64: logoBase64 ? '(มีโลโก้)' : '',
-                qrBase64: qrBase64 ? '(มี QR Code)' : '',
+                logoBase64: logoBase64 || '',
+                qrBase64: qrBase64 || '',
                 timestamp: new Date().toISOString()
             };
         }
@@ -3003,13 +2895,11 @@
                 try {
                     const controller = new AbortController();
                     const timeoutId = setTimeout(() => controller.abort(), 15000);
-
                     const response = await fetch(url, {
                         ...options,
                         signal: controller.signal,
                         mode: 'cors'
                     });
-
                     clearTimeout(timeoutId);
                     return response;
                 } catch (err) {
@@ -3023,35 +2913,25 @@
         async function sheetsTestConnection() {
             logSheets('🔗 กำลังทดสอบการเชื่อมต่อ...');
             const url = getSheetsUrl();
-
             if (!url) {
                 showToast('กรุณากรอก Apps Script URL ก่อน', 'warning');
                 return;
             }
-
-            // ตรวจสอบรูปแบบ URL
             if (!url.includes('/exec')) {
                 logSheets('⚠️ URL ควรลงท้ายด้วย /exec');
                 showToast('URL ควรลงท้ายด้วย /exec', 'warning');
             }
-
             saveSheetsUrlToStorage(url);
-
             try {
                 const testUrl = addQueryParam(url, 'action', 'ping');
-                console.log('🔗 Testing URL:', testUrl);
-
                 const res = await fetchWithRetry(testUrl, { method: 'GET' });
-
                 if (res.ok) {
                     const data = await res.json();
-                    console.log('✅ Connection success:', data);
                     setSheetsStatus(true, 'เชื่อมต่อแล้ว ✓');
                     logSheets('✅ เชื่อมต่อ Google Sheets สำเร็จ: ' + (data.message || 'OK'));
                     showToast('✅ เชื่อมต่อ Google Sheets สำเร็จ!', 'success');
                 } else {
                     const text = await res.text();
-                    console.error('❌ Response not OK:', res.status, text);
                     throw new Error(`HTTP ${res.status}: ${text.substring(0, 100)}`);
                 }
             } catch (err) {
@@ -3059,7 +2939,6 @@
                 let errorMsg = err.message;
                 if (err.name === 'AbortError') errorMsg = 'การเชื่อมต่อหมดเวลา (15 วินาที)';
                 else if (err.message.includes('Failed to fetch')) errorMsg = 'ไม่สามารถเชื่อมต่อได้ - ตรวจสอบ URL และการตั้งค่า CORS';
-
                 logSheets('❌ ทดสอบการเชื่อมต่อไม่สำเร็จ: ' + errorMsg);
                 setSheetsStatus(false, 'เชื่อมต่อไม่ได้');
                 showToast('❌ ไม่สามารถเชื่อมต่อได้: ' + errorMsg, 'error');
@@ -3068,34 +2947,26 @@
 
         async function sheetsSaveProfile() {
             const url = getSheetsUrl();
-
             if (!url) {
                 showToast('กรุณากรอก Apps Script URL ก่อน', 'warning');
                 return;
             }
-
             saveSheetsUrlToStorage(url);
             const data = collectProfileData();
-
             logSheets('💾 กำลังบันทึกโปรไฟล์...');
-            console.log('📤 Sending data:', data);
-
             try {
                 const res = await fetchWithRetry(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'saveProfile', data: data })
                 });
-
                 if (res.ok) {
                     const result = await res.json();
-                    console.log('✅ Save success:', result);
                     showToast('💾 บันทึกโปรไฟล์สำเร็จ!', 'success');
                     logSheets('✅ ส่งข้อมูลไปยัง Google Sheets แล้ว (Row: ' + (result.row || 'N/A') + ')');
                     setSheetsStatus(true, 'บันทึกแล้ว ✓');
                 } else {
                     const text = await res.text();
-                    console.error('❌ Save failed:', res.status, text);
                     throw new Error(`HTTP ${res.status}`);
                 }
             } catch (err) {
@@ -3103,7 +2974,6 @@
                 let errorMsg = err.message;
                 if (err.name === 'AbortError') errorMsg = 'การเชื่อมต่อหมดเวลา';
                 else if (err.message.includes('Failed to fetch')) errorMsg = 'ไม่สามารถเชื่อมต่อได้ - ตรวจสอบ URL';
-
                 logSheets('❌ ส่งข้อมูลไม่สำเร็จ: ' + errorMsg);
                 showToast('❌ ไม่สามารถบันทึกข้อมูลได้: ' + errorMsg, 'error');
             }
@@ -3111,43 +2981,30 @@
 
         async function sheetsLoadProfile() {
             const url = getSheetsUrl();
-
             if (!url) {
                 showToast('กรุณากรอก Apps Script URL ก่อน', 'warning');
                 return;
             }
-
             saveSheetsUrlToStorage(url);
             logSheets('📥 กำลังโหลดข้อมูลล่าสุดจาก Sheets...');
-
             try {
                 const loadUrl = addQueryParam(url, 'action', 'loadProfile');
-                console.log('📥 Loading from:', loadUrl);
-
                 const res = await fetchWithRetry(loadUrl, { method: 'GET' });
                 const text = await res.text();
-
                 let result;
                 try {
                     result = JSON.parse(text);
                 } catch (e) {
-                    console.error('❌ Invalid JSON response:', text.substring(0, 200));
                     logSheets('⚠ ไม่สามารถอ่านข้อมูลที่ส่งกลับมาได้ (ไม่ใช่ JSON)');
                     showToast('รูปแบบข้อมูลไม่ถูกต้อง', 'error');
                     return;
                 }
-
-                console.log('📦 Load result:', result);
-
                 if (result.status === 'empty' || !result.data) {
                     logSheets('⚠ ไม่พบข้อมูล หรือโปรไฟล์ว่าง');
                     showToast('ไม่พบข้อมูลใน Google Sheets', 'warning');
                     return;
                 }
-
                 const d = result.data;
-
-                // อัปเดตฟอร์ม
                 if (d.companyName !== undefined) { const el = document.getElementById('companyName'); if (el) el.value = d.companyName; }
                 if (d.taxId !== undefined) { const el = document.getElementById('taxId'); if (el) el.value = d.taxId; }
                 if (d.clientName !== undefined) { const el = document.getElementById('clientName'); if (el) el.value = d.clientName; }
@@ -3160,19 +3017,16 @@
                 if (d.accountName !== undefined) { const el = document.getElementById('accountName'); if (el) el.value = d.accountName; }
                 if (d.scanMessage1 !== undefined) { const el = document.getElementById('scanMessage1'); if (el) el.value = d.scanMessage1; }
                 if (d.scanMessage2 !== undefined) { const el = document.getElementById('scanMessage2'); if (el) el.value = d.scanMessage2; }
-
                 if (d.vatEnabled !== undefined) {
                     vatEnabled = toBoolean(d.vatEnabled);
                     updateToggleUI('vat', vatEnabled);
                 }
-
                 if (d.paymentEnabled !== undefined) {
                     paymentEnabled = toBoolean(d.paymentEnabled);
                     updateToggleUI('payment', paymentEnabled);
                     const section = document.getElementById('paymentSection');
                     if (section) section.style.display = paymentEnabled ? 'block' : 'none';
                 }
-
                 if (d.items) {
                     try {
                         const parsed = typeof d.items === 'string' ? JSON.parse(d.items) : d.items;
@@ -3181,18 +3035,16 @@
                         console.warn('Failed to parse items:', e);
                     }
                 }
-
+                // Note: logoBase64 and qrBase64 are not restored for security/perf reasons
                 renderAll();
                 setSheetsStatus(true, 'โหลดข้อมูลแล้ว ✓');
                 logSheets('✅ โหลดข้อมูลสำเร็จ');
                 showToast('📥 โหลดข้อมูลจาก Google Sheets สำเร็จ!', 'success');
-
             } catch (err) {
                 console.error('❌ Load error:', err);
                 let errorMsg = err.message;
                 if (err.name === 'AbortError') errorMsg = 'การเชื่อมต่อหมดเวลา';
                 else if (err.message.includes('Failed to fetch')) errorMsg = 'ไม่สามารถเชื่อมต่อได้';
-
                 logSheets('❌ โหลดข้อมูลไม่สำเร็จ: ' + errorMsg);
                 showToast('❌ ไม่สามารถโหลดข้อมูลได้: ' + errorMsg, 'error');
             }
